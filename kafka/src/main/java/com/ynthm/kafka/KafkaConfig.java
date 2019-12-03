@@ -19,6 +19,14 @@ import java.util.Map;
 
 /**
  * Author : Ynthm
+ * 配置生产者
+ * producerConfigs
+ * producerFactory
+ * KafkaTemplate
+ * 配置消费者
+ * consumerConfigs
+ * consumerFactory
+ * kafkaListenerContainerFactory
  */
 @Configuration
 @EnableKafka
@@ -71,6 +79,7 @@ public class KafkaConfig {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, producerBootstrapServers);
         props.put(ProducerConfig.RETRIES_CONFIG, 0);
+        props.put(ProducerConfig.ACKS_CONFIG, "all");
         props.put(ProducerConfig.BATCH_SIZE_CONFIG, 4096);
         props.put(ProducerConfig.LINGER_MS_CONFIG, 1);
         props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 40960);
@@ -107,12 +116,13 @@ public class KafkaConfig {
      */
     @Bean
     public KafkaListenerContainerFactory<?> batchContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<Object, Object> containerFactory = new ConcurrentKafkaListenerContainerFactory<Object, Object>();
+        ConcurrentKafkaListenerContainerFactory<Object, Object> containerFactory = new ConcurrentKafkaListenerContainerFactory<>();
         containerFactory.setConsumerFactory(consumerFactory());
+        // 多线程消费
         containerFactory.setConcurrency(4);
         containerFactory.setBatchListener(true); //批量消费
-        containerFactory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
-
+        // 手工管理 Offset  ConsumerConfig  props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        // containerFactory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
         return containerFactory;
     }
 
