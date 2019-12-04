@@ -3,8 +3,9 @@
 ## macOS Kafka
 
 ```sh
+# 安装kafka前默认安装了zookeeper
 brew install kafka
-brew install zookeeper
+# brew install zookeeper
 
 vim /usr/local/etc/kafka/server.properties
 ```
@@ -17,26 +18,35 @@ listeners=PLAINTEXT://localhost:9092
 如果想以服务的方式启动，那么可以:
 
 ```sh
-brew services start zookeeper
 brew services start kafka
+brew services start zookeeper
 ```
 
 如果只是临时启动，可以:
 
 ```sh
+# 使用配置 /usr/local/etc/zookeeper/zoo.cfg
 zkServer start
 kafka-server-start /usr/local/etc/kafka/server.properties
+
+zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties & kafka-server-start /usr/local/etc/kafka/server.properties
+
+zookeeper-server-stop
+kafka-server-stop
 ```
 
 ### 创建Topic
 
 ```sh
-kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test
+kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 2 --topic test
+# 数据默认存储在 log.dirs=/usr/local/var/lib/kafka-logs
+# 这里--replication-factor 不大于集群的 brokers  会有 test-0 test-1文件夹
 ```
 
 ### 产生消息
 
 ```sh
+# 新建一个 SHELL 
 kafka-console-producer --broker-list localhost:9092 --topic test
 >HELLO Kafka
 ```
@@ -55,7 +65,11 @@ kafka-console-consumer --bootstrap-server localhost:9092 --topic test --from-beg
 kafka-console-consumer --bootstrap-server localhost:9092 --topic test --group test-consumer1 --from-beginning
 ```
 
+可视化 UI
 
+```sh
+brew cask install kafka-tool
+```
 
 
 
