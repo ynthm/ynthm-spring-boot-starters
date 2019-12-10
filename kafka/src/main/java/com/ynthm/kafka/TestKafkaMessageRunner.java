@@ -35,6 +35,5 @@ public class TestKafkaMessageRunner implements CommandLineRunner {
             kafkaTemplate.send("topic.test001", UUID.randomUUID().toString(), "i" + i);
         }
 
-
     }
 }
