@@ -1,5 +1,7 @@
 package com.ynthm.mongodb;
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.WriteResult;
 import com.mongodb.client.model.CreateCollectionOptions;
 import com.mongodb.client.model.TextSearchOptions;
 import com.mongodb.reactivestreams.client.MongoCollection;
@@ -8,6 +10,8 @@ import com.mongodb.reactivestreams.client.Success;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.junit.jupiter.api.Test;
+
+import java.util.Date;
 
 import static com.mongodb.client.model.Filters.text;
 import static java.util.Arrays.asList;
