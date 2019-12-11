@@ -6,6 +6,7 @@ import com.ynthm.kafka.domain.Order;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
@@ -18,9 +19,9 @@ import java.time.LocalDateTime;
  * Author : Ynthm
  */
 @Component
-public class KafkaProvider {
+public class KafkaProducer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(KafkaProvider.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(KafkaProducer.class);
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -34,12 +35,13 @@ public class KafkaProvider {
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
 
+    @Autowired
+    @Qualifier("customKafkaTemplate")
+    private KafkaTemplate<String, String> customKafkaTemplate;
 
-    public void sendMessage(long orderId, String orderNum, LocalDateTime createTime) throws JsonProcessingException {
 
-        // 构建一个订单类
-        Order order = new Order();
-        order.setOrderNum("000000001");
+    public void sendMessage(Order order) throws JsonProcessingException {
+
         // 发送消息，订单类的 json 作为消息体
         ListenableFuture<SendResult<String, String>> future = kafkaTemplate.send(TOPIC, objectMapper.writeValueAsString(order));
         // 监听回调

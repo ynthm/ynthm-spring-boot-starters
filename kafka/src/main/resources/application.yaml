@@ -4,6 +4,9 @@ spring:
       WRITE_DATES_AS_TIMESTAMPS: false
 
   kafka:
+    listener:
+      concurrency: 3
+    # 多地址逗号隔开
     bootstrap-servers: localhost:9092
     consumer:
       group-id: group_id
@@ -21,3 +24,31 @@ spring:
       batch-size: 16384
       lingerMs: 1
       buffer-memory: 33554432
+
+kafka:
+  topic:
+    group-id: topicGroupId
+    topic-name:
+      - topic1
+      - topic2
+      - topic3
+
+
+  producer:
+    bootstrapServers: localhost:9092
+    retries: 3
+    #16K
+    batchSize: 16384
+    lingerMs: 1
+    #32M
+    bufferMemory: 33554432
+
+  consumer:
+    bootstrapServers: localhost:9092
+    groupId: 0
+    enableAutoCommit: false
+    autoCommitIntervalMs: 1000
+    sessionTimeoutMs: 30000
+    maxPollRecords: 100
+    #earliest,latest
+    autoOffsetReset: earliest
