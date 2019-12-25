@@ -1,4 +1,0 @@
-elasticsearch:
-  http:
-    host:
-      - localhost:9200

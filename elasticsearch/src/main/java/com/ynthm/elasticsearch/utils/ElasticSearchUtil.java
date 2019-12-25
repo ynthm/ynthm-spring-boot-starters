@@ -1,7 +1,6 @@
-package com.ynthm.elasticsearch;
+package com.ynthm.elasticsearch.utils;
 
 import org.elasticsearch.action.bulk.*;
-import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -11,7 +10,6 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -22,7 +20,6 @@ import java.util.concurrent.TimeUnit;
 public class ElasticSearchUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(ElasticSearchUtil.class);
 
-    @Qualifier("elasticsearchConfiguration")
     @Autowired
     private RestHighLevelClient restHighLevelClient;
 
