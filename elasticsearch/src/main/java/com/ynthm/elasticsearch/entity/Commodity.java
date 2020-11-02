@@ -6,15 +6,15 @@ import org.springframework.data.elasticsearch.annotations.Document;
 
 import java.io.Serializable;
 
+/** @author ethan */
 @Data
-@Document(indexName = "commodity", type = "commodity")
+@Document(indexName = "commodity")
 public class Commodity implements Serializable {
 
-    @Id
-    private String skuId;
-    private String name;
-    private String category;
-    private Integer price;
-    private String brand;
-    private Integer stock;
+  @Id private String skuId;
+  private String name;
+  private String category;
+  private Integer price;
+  private String brand;
+  private Integer stock;
 }
