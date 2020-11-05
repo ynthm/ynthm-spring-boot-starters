@@ -3,3 +3,4 @@ spring:
   elasticsearch:
     rest:
       uris: http://localhost:9200
+      read-timeout: 30s

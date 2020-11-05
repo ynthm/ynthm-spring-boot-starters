@@ -1,5 +1,6 @@
 package com.ynthm.elasticsearch.entity;
 
+import com.ynthm.elasticsearch.config.IndexNameConst;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.data.annotation.Id;
@@ -20,7 +21,7 @@ import java.util.List;
  */
 @Data
 @Accessors(chain = true)
-@Document(indexName = "artwork")
+@Document(indexName = IndexNameConst.ARTWORK)
 public class Artwork {
 
   @Id private String id;
