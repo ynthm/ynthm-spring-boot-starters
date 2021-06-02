@@ -1,0 +1,30 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: group-01
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      properties:
+        specific.avro.reader: true
+    properties:
+      schema.registry.url: http://localhost:8091
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      retries: 3
+      properties:
+        retry.backoff.ms: 500
+
+    listener:
+      ack-mode: manual_immediate
+      concurrency: 3
+      ack-count: 3
+      ack-time: 5000
+
+cdc:
+  topic:
+    bo:
+      customer: "com.ynthm.avro.office.t_customer"
