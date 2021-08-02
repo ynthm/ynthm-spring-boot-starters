@@ -1,0 +1,21 @@
+GET {{uri}}/producer/test1?msg=12312
+
+###
+
+### Send POST request with json body
+POST {{uri}}/producer
+Content-Type: application/json
+
+{
+  "id": 999,
+  "orderNum": "content"
+}
+
+###
+
+POST {{uri}}/greeting
+Content-Type: application/json
+
+{}
+
+###
