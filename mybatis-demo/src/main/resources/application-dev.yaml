@@ -1,0 +1,34 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/test
+    username: postgres
+    password: wang0804
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      schema: public
+      auto-commit: false
+    master:
+      url: jdbc:postgresql://localhost:5432/master
+      username: postgres
+      password: wang0804
+      driver-class-name: org.postgresql.Driver
+    slave:
+      url: jdbc:postgresql://localhost:5432/slave
+      username: postgres
+      password: wang0804
+      driver-class-name: org.postgresql.Driver
+    main:
+      url: jdbc:postgresql://localhost:5432/master
+      username: postgres
+      password: wang0804
+      driver-class-name: org.postgresql.Driver
+    second:
+      url: jdbc:postgresql://localhost:5432/slave
+      username: postgres
+      password: wang0804
+      driver-class-name: org.postgresql.Driver
+
+# 在控制台打印sql
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

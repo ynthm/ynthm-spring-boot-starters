@@ -1,6 +1,6 @@
 package com.ynthm.spring.web.demo.web;
 
-import com.ynthm.common.util.UserUtil;
+import com.ynthm.common.web.util.UserUtil;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;

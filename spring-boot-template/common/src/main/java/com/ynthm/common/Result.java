@@ -9,7 +9,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
-/** @author ethan */
+/**
+ *
+ * RESTFul 统一结果封装
+ *
+ * @author ethan */
 @Data
 @Accessors(chain = true)
 @AllArgsConstructor

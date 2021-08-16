@@ -1,13 +1,14 @@
 package com.ynthm.common.enums;
 
 import com.ynthm.common.IResultCode;
+import com.ynthm.common.ResultExceptionAssert;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /** @author Ethan Wang */
 @Getter
 @AllArgsConstructor
-public enum ResultCode implements IResultCode {
+public enum ResultCode implements IResultCode, ResultExceptionAssert {
   /** 失败 */
   FAILED(-1, "FAILED"),
   /** 成功 */

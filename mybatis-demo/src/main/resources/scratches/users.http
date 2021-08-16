@@ -1,0 +1,73 @@
+# For a quick start check out our HTTP Requests collection (Tools|HTTP Client|Open HTTP Requests Collection) or
+# paste cURL into the file and request will be converted to HTTP Request format.
+#
+# Following HTTP Request Live Templates are available:
+# * 'gtrp' and 'gtr' create a GET request with or without query parameters;
+# * 'ptr' and 'ptrp' create a POST request with a simple or parameter-like body;
+# * 'mptr' and 'fptr' create a POST request to submit a form with a text or file field (multipart/form-data);
+
+# 邮箱登录
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "iwys@qq.com",
+  "password": "aa1234567"
+}
+
+> {%
+    client.global.set("auth_token", response.body.data.token);
+%}
+
+###
+
+# 手机号登录
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "areaCode": 86,
+  "phoneNumber": "15767847423",
+  "password": "aa123456"
+}
+
+> {%
+    client.global.set("auth_token", response.body.data.token);
+%}
+
+###
+# 发送验证码
+POST {{baseUrl}}/auth/code
+Content-Type: application/json
+
+{
+  "areaCode": "86",
+  "phoneNumber": "18588207723"
+}
+
+###
+# 注册
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "areaCode": "86",
+  "phoneNumber": "11",
+  "password": "12345678",
+  "confirmPassword": "12345678",
+  "verificationCode": "888888"
+}
+
+###
+
+GET {{baseUrl}}/users/info
+Authorization: {{auth_token}}
+Accept: application/json
+
+###
+
+GET {{baseUrl}}/users/agents/73
+Authorization: {{auth_token}}
+Accept: application/json
+
+###

@@ -1,20 +1,21 @@
 package com.ynthm.common.exception;
 
-import com.ynthm.common.enums.ResultCode;
+import com.ynthm.common.IResultCode;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /** @author ethan */
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class BaseException extends RuntimeException {
-  private static final long serialVersionUID = 1L;
-  private ResultCode resultCode;
+public class BaseException extends RuntimeException  {
+  protected final IResultCode resultCode;
 
-  public BaseException(ResultCode resultCode) {
+  public BaseException(IResultCode resultCode) {
     super(resultCode.getMessage());
     this.resultCode = resultCode;
   }
 
-  public BaseException(ResultCode resultCode, Throwable cause) {
+  public BaseException(IResultCode resultCode, Throwable cause) {
     super(resultCode.getMessage(), cause);
     this.resultCode = resultCode;
   }
