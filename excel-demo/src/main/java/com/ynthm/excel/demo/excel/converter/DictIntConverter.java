@@ -2,8 +2,9 @@ package com.ynthm.excel.demo.excel.converter;
 
 import com.alibaba.excel.converters.Converter;
 import com.alibaba.excel.enums.CellDataTypeEnum;
-import com.alibaba.excel.metadata.CellData;
 import com.alibaba.excel.metadata.GlobalConfiguration;
+import com.alibaba.excel.metadata.data.ReadCellData;
+import com.alibaba.excel.metadata.data.WriteCellData;
 import com.alibaba.excel.metadata.property.ExcelContentProperty;
 import org.springframework.util.Assert;
 
@@ -22,7 +23,7 @@ public class DictIntConverter implements Converter<Number> {
 
   @Override
   public Number convertToJavaData(
-      CellData cellData,
+      ReadCellData cellData,
       ExcelContentProperty excelContentProperty,
       GlobalConfiguration globalConfiguration)
       throws Exception {
@@ -37,7 +38,7 @@ public class DictIntConverter implements Converter<Number> {
   }
 
   @Override
-  public CellData<String> convertToExcelData(
+  public WriteCellData<String> convertToExcelData(
       Number t, ExcelContentProperty excelContentProperty, GlobalConfiguration globalConfiguration)
       throws Exception {
 
@@ -46,6 +47,6 @@ public class DictIntConverter implements Converter<Number> {
 
     Assert.notNull(annotation, "枚举值不合法， 请使用 @ExcelDictFormat 指定枚举");
     String parentCode = annotation.parentCode();
-    return new CellData<>(DictHelper.getInstance().getLabel(parentCode, t.intValue()));
+    return new WriteCellData<>(DictHelper.getInstance().getLabel(parentCode, t.intValue()));
   }
 }

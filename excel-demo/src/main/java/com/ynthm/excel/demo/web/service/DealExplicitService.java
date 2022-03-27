@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -75,7 +76,7 @@ public class DealExplicitService {
                 })
             .build();
     WriteSheet sheet = EasyExcel.writerSheet().build();
-    excelWriter.write(null, sheet).finish();
+    excelWriter.write((Collection<?>) null, sheet).finish();
   }
 
   /**

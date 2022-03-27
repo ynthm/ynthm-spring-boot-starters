@@ -1,13 +1,7 @@
 package com.ynthm.excel.demo.excel.converter;
 
 /** @author Ethan Wang */
-public interface IEnum {
-  /**
-   * 数据库值
-   *
-   * @return 数据库值
-   */
-  Integer getValue();
+public interface ExcelEnum {
 
   /**
    * 显示

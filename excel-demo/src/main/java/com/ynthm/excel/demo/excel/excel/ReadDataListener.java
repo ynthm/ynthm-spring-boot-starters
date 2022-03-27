@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * 模板的读取类
+ * 模板的读取类 每次都要新建
  *
  * @author Ethan Wang
  */

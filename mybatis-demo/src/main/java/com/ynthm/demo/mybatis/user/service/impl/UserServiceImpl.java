@@ -38,7 +38,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
   @Autowired private HttpServletRequest httpServletRequest;
 
-  @Autowired private UserRoleService userRoleService;
+  private UserRoleService userRoleService;
+
+  @Autowired
+  public void setUserRoleService(UserRoleService userRoleService) {
+    this.userRoleService = userRoleService;
+  }
 
   @Override
   @Transactional(rollbackFor = {SQLException.class})

@@ -1,5 +1,6 @@
 package com.ynthm.common.web.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ynthm.common.constant.Constant;
 import com.ynthm.common.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -7,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.MediaTypeFactory;
+import sun.instrument.InstrumentationImpl;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -109,22 +111,6 @@ public class ServletUtil {
     return StringUtil.isEmpty(ip) || UNKNOWN.equalsIgnoreCase(ip);
   }
 
-  public static String long2Ipv4(long longIp) {
-    int octet3 = (int) ((longIp >> 24) % 256);
-    int octet2 = (int) ((longIp >> 16) % 256);
-    int octet1 = (int) ((longIp >> 8) % 256);
-    int octet0 = (int) (longIp % 256);
-    return octet3 + "." + octet2 + '.' + octet1 + '.' + octet0;
-  }
-
-  public static long ipv42Long(String ip) {
-    String[] octets = StringUtil.split(ip, '.');
-    return (Long.parseLong(octets[0]) << 24)
-        + (Long.parseLong(octets[0]) << 16)
-        + (Long.parseLong(octets[0]) << 8)
-        + Long.parseLong(octets[0]);
-  }
-
   /**
    * 获取User-Agent
    *
@@ -160,5 +146,17 @@ public class ServletUtil {
       url = request.getRequestURL().toString();
     }
     return url;
+  }
+
+  public static void main(String[] args) throws JsonProcessingException {
+    System.out.println("byte " + Byte.BYTES);
+    System.out.println("char " + Character.BYTES);
+    System.out.println("int " + Integer.BYTES);
+    System.out.println("long " + Long.BYTES);
+    System.out.println("short " + Short.BYTES);
+    System.out.println("double " + Double.BYTES);
+    System.out.println("float " + Float.BYTES);
+
+    System.out.println(new InstrumentationImpl().getObjectSize(new Object()));
   }
 }

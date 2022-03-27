@@ -1,6 +1,5 @@
 package com.ynthm.excel.demo.excel.util;
 
-import cn.hutool.core.io.FileUtil;
 import com.alibaba.excel.EasyExcelFactory;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.support.ExcelTypeEnum;
@@ -8,11 +7,7 @@ import com.alibaba.excel.write.builder.ExcelWriterSheetBuilder;
 import com.alibaba.excel.write.handler.SheetWriteHandler;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.ynthm.common.api.Page;
-import com.ynthm.common.exception.BaseException;
-import com.ynthm.common.web.util.ResourceUtil;
-import com.ynthm.excel.demo.excel.enums.ResultCodeExcel;
 import com.ynthm.excel.demo.excel.excel.ReadDataListener;
-import com.ynthm.excel.demo.web.config.GlobalConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -98,7 +93,6 @@ public class ExcelUtil<T> {
    */
   public void write(
       String sheetName, OutputStream out, int total, Function<Page<T>, List<T>> function) {
-
     ExcelWriter excelWriter = EasyExcelFactory.write(out, clazz).build();
     // 这里注意 如果同一个sheet只要创建一次
     WriteSheet writeSheet = EasyExcelFactory.writerSheet(sheetName).build();
@@ -165,44 +159,6 @@ public class ExcelUtil<T> {
   }
 
   /**
-   * 导出 支持大数据量批量导出
-   *
-   * @param templateName 模板名字 带扩展名xlsx
-   * @param outputFileName 导出临时文件名 不带扩展名
-   * @param total 总记录条数
-   * @param function 分页查询导出结果
-   */
-  public void fill(
-      String templateName, String outputFileName, int total, Function<Page<T>, List<T>> function) {
-    String fileName = encodingFileName(outputFileName);
-    try (FileOutputStream fileOutputStream = new FileOutputStream(getDownloadFilePath(fileName))) {
-      fill(
-          ResourceUtil.getResourceAsStream(
-              this.getClass(), "excel" + File.separator + templateName),
-          fileOutputStream,
-          total,
-          function);
-    } catch (IOException e) {
-      throw new BaseException(ResultCodeExcel.EXCEL_EXPORT_FAILED, e);
-    }
-  }
-
-  /**
-   * 导出模板
-   *
-   * @param templateFileName 模板文件名
-   * @param templateDisplayName 导出文件名称
-   */
-  public void exportTemplate(String templateFileName, String templateDisplayName) {
-    templateDisplayName = templateDisplayName + ExcelTypeEnum.XLSX.getValue();
-    File fileOutputStream = new File(getDownloadFilePath(templateDisplayName));
-    FileUtil.writeFromStream(
-        ResourceUtil.getResourceAsStream(
-            this.getClass(), "excel" + File.separator + templateFileName),
-        fileOutputStream);
-  }
-
-  /**
    * 文件名防止重复
    *
    * @param fileName 文件名不带后缀
@@ -210,20 +166,6 @@ public class ExcelUtil<T> {
    */
   public String encodingFileName(String fileName) {
     return fileName + "-" + Instant.now().toEpochMilli() + ExcelTypeEnum.XLSX.getValue();
-  }
-
-  /**
-   * 获取下载路径
-   *
-   * @param filename 文件名称
-   */
-  public String getDownloadFilePath(String filename) {
-    String downloadPath = GlobalConfig.getDownloadPath() + filename;
-    File desc = new File(downloadPath);
-    if (!desc.getParentFile().exists() && !desc.getParentFile().mkdirs()) {
-      log.warn("make dir {} failed.", downloadPath);
-    }
-    return downloadPath;
   }
 
   private InputStream cloneSheetZero(InputStream fileInputStream, int count) throws IOException {
