@@ -15,7 +15,6 @@ import org.springframework.core.io.ClassPathResource;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -77,14 +76,21 @@ class MinioUtilTest {
   }
 
   @Test
-  void getObject() throws IOException {
+  void getObject() {
     GetObjectReq req = new GetObjectReq();
     req.setBucket(BUCKET_NAME);
     req.setObject("abc.jpg");
-    try (InputStream inputStream = minioUtil.getObject(req, headers -> {})) {
-      Assertions.assertNotNull(inputStream);
-      Files.copy(inputStream, Paths.get("/Users/ynthm/Downloads/file-003.jpg"));
-    }
+    minioUtil.getObject(
+        req,
+        headers -> {},
+        inputStream -> {
+          Assertions.assertNotNull(inputStream);
+          try {
+            Files.copy(inputStream, Paths.get("/Users/ynthm/Downloads/file-003.jpg"));
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        });
   }
 
   @Test

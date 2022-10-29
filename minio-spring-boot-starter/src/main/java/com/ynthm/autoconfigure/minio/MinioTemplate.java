@@ -4,12 +4,10 @@ import com.ynthm.autoconfigure.minio.domain.BaseObject;
 import com.ynthm.autoconfigure.minio.domain.GetObjectReq;
 import com.ynthm.autoconfigure.minio.domain.PreSignedReq;
 import com.ynthm.autoconfigure.minio.domain.PutObjectReq;
-import com.ynthm.common.exception.UtilException;
 import io.minio.ObjectWriteResponse;
 import io.minio.StatObjectResponse;
 import okhttp3.Headers;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.function.Consumer;
 
@@ -42,12 +40,7 @@ public class MinioTemplate implements MinioOperations {
   @Override
   public void getObject(
       GetObjectReq req, Consumer<Headers> headersConsumer, Consumer<InputStream> readStream) {
-    try (InputStream stream = minioUtil.getObject(req, headersConsumer)) {
-      // Read data from stream
-      readStream.accept(stream);
-    } catch (IOException e) {
-      throw new UtilException(e);
-    }
+    minioUtil.getObject(req, headersConsumer, readStream);
   }
 
   @Override

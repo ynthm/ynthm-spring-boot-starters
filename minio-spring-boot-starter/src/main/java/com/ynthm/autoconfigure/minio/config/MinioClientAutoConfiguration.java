@@ -3,6 +3,8 @@ package com.ynthm.autoconfigure.minio.config;
 import com.ynthm.autoconfigure.minio.MinioTemplate;
 import com.ynthm.autoconfigure.minio.MinioUtil;
 import io.minio.MinioClient;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.util.StringUtils;
@@ -14,6 +16,7 @@ import org.springframework.util.StringUtils;
 public class MinioClientAutoConfiguration {
 
   @Bean
+  @ConditionalOnMissingBean(MinioClient.class)
   public MinioClient minioClient(MinoClientProperties minoClientProperties) {
 
     MinioClient.Builder builder =
@@ -40,11 +43,15 @@ public class MinioClientAutoConfiguration {
   }
 
   @Bean
+  @ConditionalOnBean(MinioClient.class)
+  @ConditionalOnMissingBean(MinioUtil.class)
   public MinioUtil minioUtil(MinioClient minioClient) {
     return new MinioUtil(minioClient);
   }
 
   @Bean
+  @ConditionalOnBean(MinioUtil.class)
+  @ConditionalOnMissingBean(MinioTemplate.class)
   public MinioTemplate minioTemplate(MinioUtil minioUtil) {
     return new MinioTemplate(minioUtil);
   }
