@@ -1,1 +1,0 @@
-{"code":405,"msg":"Request method 'GET' not supported"}

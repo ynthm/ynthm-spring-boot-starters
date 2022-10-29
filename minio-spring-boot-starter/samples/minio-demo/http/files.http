@@ -1,0 +1,9 @@
+POST {{baseUrl}}/files/preSignedObjectUrl
+Content-Type: application/json
+
+{
+  "bucket": "bucket-1",
+  "object": "abc.jpg"
+}
+
+###

@@ -1,0 +1,11 @@
+spring:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 1024MB
+      max-request-size: 1024MB
+minio:
+  endpoint: http://127.0.0.1:9000
+  access-key: rzuxi8S4DKk6xzdF
+  secret-key: mjyimY3T4nkMEUFtO8DgkBPDoqRyIKOv
+  default-bucket-name: bucket-1
