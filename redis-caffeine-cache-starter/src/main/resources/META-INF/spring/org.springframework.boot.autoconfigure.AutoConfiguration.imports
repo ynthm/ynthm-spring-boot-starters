@@ -1,0 +1,2 @@
+com.ynthm.autoconfigure.cache.config.RedisConfig
+com.ynthm.autoconfigure.cache.config.CacheRedisCaffeineAutoConfiguration

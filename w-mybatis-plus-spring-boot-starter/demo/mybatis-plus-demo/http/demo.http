@@ -1,0 +1,24 @@
+GET {{baseUrl}}/demo
+Accept: application/json
+
+###
+
+GET {{baseUrl}}/user/2
+Accept: application/json
+
+###
+
+GET {{baseUrl}}/getGender?gender=-1
+Accept: application/json
+
+###
+
+POST {{baseUrl}}/getPeople
+Content-Type: application/json
+
+{
+  "gender": -1
+}
+
+###
+

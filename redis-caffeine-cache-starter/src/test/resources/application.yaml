@@ -1,0 +1,54 @@
+spring:
+  redis:
+    host: 192.168.3.179
+    port: 6379
+    password: root
+    database: 1
+    lettuce:
+      pool:
+        enabled: true
+        max-active: 16
+        max-idle: 16
+        max-wait: 5s
+        min-idle: 0
+        time-between-eviction-runs: 1s
+# 配置模板:
+# 更多可自定义配置参考 CacheRedisCaffeineProperties.Java
+cache.multi:
+  cachePrefix: w
+  dynamic: true
+  redis:
+    topic: cache:redis:caffeine:topic
+    defaultExpiration: 1h
+    expires:
+      cache:user: 60s
+  cacheDefault:
+    expireAfterAccess: 5s
+    expireAfterWrite: 60s
+    initialCapacity: 50
+    maximumSize: 50
+  cache15m:
+    expireAfterAccess: 10s
+    expireAfterWrite: 300s
+    initialCapacity: 100
+    maximumSize: 100
+  cache30m:
+    expireAfterAccess: 5s
+    expireAfterWrite: 300s
+    initialCapacity: 100
+    maximumSize: 100
+  cache60m:
+    expireAfterAccess: 5s
+    initialCapacity: 100
+    expireAfterWrite: 300s
+    maximumSize: 100
+  cache2h:
+    expireAfterAccess: 5s
+    initialCapacity: 100
+    expireAfterWrite: 300s
+    maximumSize: 100
+  cache12h:
+    expireAfterAccess: 5s
+    expireAfterWrite: 300s
+    initialCapacity: 100
+    maximumSize: 100
