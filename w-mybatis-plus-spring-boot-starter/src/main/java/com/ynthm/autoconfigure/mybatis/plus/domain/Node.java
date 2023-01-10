@@ -15,6 +15,10 @@ public class Node {
 
   private String idPath;
   private String name;
+
+  /** 显示顺序 */
+  private Integer orderNum;
+
   private List<Node> children = new ArrayList<>();
 
   public Node() {

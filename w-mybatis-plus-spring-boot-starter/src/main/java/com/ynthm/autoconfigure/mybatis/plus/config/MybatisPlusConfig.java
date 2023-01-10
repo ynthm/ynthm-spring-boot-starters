@@ -1,12 +1,13 @@
 package com.ynthm.autoconfigure.mybatis.plus.config;
 
 import com.baomidou.mybatisplus.annotation.DbType;
+import com.baomidou.mybatisplus.autoconfigure.ConfigurationCustomizer;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
-import org.mybatis.spring.annotation.MapperScan;
+import org.apache.ibatis.logging.slf4j.Slf4jImpl;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
  *
  * @author Ethan Wang
  */
-@MapperScan("com.ynthm.demo.mybatis.plus.**.mapper")
+// @MapperScan("com.ynthm.demo.mybatis.plus.**.mapper")
 @Configuration
 public class MybatisPlusConfig {
   @Bean
@@ -31,6 +32,11 @@ public class MybatisPlusConfig {
     // 针对 update 和 delete 语句 作用: 阻止恶意的全表更新删除
     interceptor.addInnerInterceptor(new BlockAttackInnerInterceptor());
     return interceptor;
+  }
+
+  @Bean
+  public ConfigurationCustomizer configurationCustomizer() {
+    return configuration -> configuration.setLogImpl(Slf4jImpl.class);
   }
 
   @ConditionalOnMissingBean(MetaObjectHandler.class)
