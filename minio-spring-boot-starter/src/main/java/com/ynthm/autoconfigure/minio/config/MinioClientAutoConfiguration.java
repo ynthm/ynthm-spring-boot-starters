@@ -33,7 +33,7 @@ public class MinioClientAutoConfiguration {
       builder.endpoint(minoClientProperties.getEndpoint());
     }
 
-    // region
+    // 设置默认 region
     String region = minoClientProperties.getRegion();
     if (StringUtils.hasText(region)) {
       builder.region(region);

@@ -4,6 +4,7 @@ import io.minio.http.Method;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import javax.validation.constraints.NotNull;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -15,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 @EqualsAndHashCode(callSuper = true)
 public class PreSignedReq extends BaseObject {
 
-  private Method method;
+  @NotNull private Method method;
 
   private int duration = 1;
 

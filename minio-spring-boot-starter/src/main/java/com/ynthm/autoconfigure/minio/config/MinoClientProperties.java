@@ -19,11 +19,11 @@ public class MinoClientProperties {
 
   private String region;
 
+  private String defaultBucketName;
+
   private int port = -1;
   /** 安全 */
   private boolean secure;
 
-  private String defaultBucketName;
-
-  private long partSize = 104857600;
+  private long partSize = 104857600L;
 }

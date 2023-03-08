@@ -1,5 +1,6 @@
 package com.ynthm.autoconfigure.minio;
 
+import com.google.common.net.HttpHeaders;
 import com.ynthm.autoconfigure.minio.domain.*;
 import com.ynthm.common.exception.UtilException;
 import io.minio.*;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -30,9 +32,13 @@ public class MinioUtil {
     this.minioClient = minioClient;
   }
 
-  public boolean bucketExists(String bucket) {
+  public boolean bucketExists(BucketParam bucketParam) {
     try {
-      return minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucket).build());
+      return minioClient.bucketExists(
+          BucketExistsArgs.builder()
+              .region(bucketParam.getRegion())
+              .bucket(bucketParam.getBucket())
+              .build());
     } catch (ErrorResponseException
         | InsufficientDataException
         | InternalException
@@ -76,11 +82,15 @@ public class MinioUtil {
   /**
    * Create bucket with default region.
    *
-   * @param bucket 桶名字
+   * @param bucketParam 桶名字
    */
-  public void makeBucket(String bucket) {
+  public void makeBucket(BucketParam bucketParam) {
     try {
-      minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
+      minioClient.makeBucket(
+          MakeBucketArgs.builder()
+              .region(bucketParam.getRegion())
+              .bucket(bucketParam.getBucket())
+              .build());
     } catch (ErrorResponseException
         | InsufficientDataException
         | InternalException
@@ -94,9 +104,10 @@ public class MinioUtil {
     }
   }
 
-  public void removeBucket(String bucket) {
+  public void removeBucket(BucketParam param) {
     try {
-      minioClient.removeBucket(RemoveBucketArgs.builder().bucket(bucket).build());
+      minioClient.removeBucket(
+          RemoveBucketArgs.builder().region(param.getRegion()).bucket(param.getBucket()).build());
     } catch (ErrorResponseException
         | InsufficientDataException
         | InternalException
@@ -114,8 +125,11 @@ public class MinioUtil {
     try {
       // Create object ends with '/' (also called as folder or directory).
       return minioClient.putObject(
-          PutObjectArgs.builder().bucket(req.getBucket()).object(req.getObject()).stream(
-                  new ByteArrayInputStream(new byte[] {}), 0, -1)
+          PutObjectArgs.builder()
+              .region(req.getRegion())
+              .bucket(req.getBucket())
+              .object(req.getObject())
+              .stream(new ByteArrayInputStream(new byte[] {}), 0, -1)
               .build());
     } catch (ErrorResponseException
         | InsufficientDataException
@@ -130,12 +144,15 @@ public class MinioUtil {
     }
   }
 
-  public ObjectWriteResponse putObject(InputStream inputStream, PutObjectReq req) {
+  public ObjectWriteResponse putObject(PutObjectReq req) {
 
     PutObjectArgs.Builder argBuilder =
-        PutObjectArgs.builder().bucket(req.getBucket()).object(req.getObject());
+        PutObjectArgs.builder()
+            .region(req.getRegion())
+            .bucket(req.getBucket())
+            .object(req.getObject());
     if (Objects.nonNull(req.getContentType())) {
-      argBuilder.contentType(req.getContentType().getValue());
+      argBuilder.contentType(req.getContentType());
     }
 
     if (Objects.nonNull(req.getHeaders())) {
@@ -146,11 +163,9 @@ public class MinioUtil {
       argBuilder.userMetadata(req.getUserMetadata());
     }
 
-    argBuilder.stream(inputStream, req.getObjectSize(), req.getPartSize());
-
-    try {
+    try (InputStream is = req.getStream()) {
+      argBuilder.stream(is, req.getObjectSize(), req.getPartSize());
       return minioClient.putObject(argBuilder.build());
-
     } catch (ErrorResponseException
         | InsufficientDataException
         | InternalException
@@ -172,7 +187,10 @@ public class MinioUtil {
   public void getObject(
       GetObjectReq req, Consumer<Headers> headersConsumer, Consumer<InputStream> readStream) {
     GetObjectArgs.Builder builder =
-        GetObjectArgs.builder().bucket(req.getBucket()).object(req.getObject());
+        GetObjectArgs.builder()
+            .region(req.getRegion())
+            .bucket(req.getBucket())
+            .object(req.getObject());
     if (req.getOffset() != -1) {
       builder.offset(req.getOffset());
     }
@@ -205,6 +223,7 @@ public class MinioUtil {
     try {
       return minioClient.statObject(
           StatObjectArgs.builder()
+              .region(baseObject.getRegion())
               .bucket(baseObject.getBucket())
               .object(baseObject.getObject())
               .build());
@@ -226,6 +245,7 @@ public class MinioUtil {
     try {
       minioClient.removeObject(
           RemoveObjectArgs.builder()
+              .region(baseObject.getRegion())
               .bucket(baseObject.getBucket())
               .object(baseObject.getObject())
               .build());
@@ -258,6 +278,7 @@ public class MinioUtil {
       GetPresignedObjectUrlArgs.Builder builder =
           GetPresignedObjectUrlArgs.builder()
               .method(req.getMethod())
+              .region(req.getRegion())
               .bucket(req.getBucket())
               .object(req.getObject())
               .expiry(req.getDuration(), req.getUnit());
@@ -286,7 +307,7 @@ public class MinioUtil {
     // Add condition that 'key' (object name) equals to 'objectName'.
     policy.addEqualsCondition("key", req.getObject());
     // Add condition that 'Content-Type' starts with 'image/'.
-    policy.addStartsWithCondition("Content-Type", req.getContentTypeStartsWith());
+    policy.addStartsWithCondition(HttpHeaders.CONTENT_TYPE, req.getContentTypeStartsWith());
     // Add condition that 'content-length-range' is between 64kiB to 10MiB.
     policy.addContentLengthRangeCondition(req.getLowerLimit(), req.getUpperLimit());
     try {
@@ -308,10 +329,12 @@ public class MinioUtil {
     try {
       return minioClient.copyObject(
           CopyObjectArgs.builder()
+              .region(source.getRegion())
               .bucket(target.getBucket())
               .object(target.getObject())
               .source(
                   CopySource.builder()
+                      .region(target.getRegion())
                       .bucket(source.getBucket())
                       .object(source.getObject())
                       .build())
@@ -340,7 +363,11 @@ public class MinioUtil {
         req.getObjects().stream().map(DeleteObject::new).collect(Collectors.toSet());
 
     return minioClient.removeObjects(
-        RemoveObjectsArgs.builder().bucket(req.getBucket()).objects(objects).build());
+        RemoveObjectsArgs.builder()
+            .region(req.getRegion())
+            .bucket(req.getBucket())
+            .objects(objects)
+            .build());
   }
 
   /**
@@ -353,6 +380,7 @@ public class MinioUtil {
     try {
       minioClient.setObjectTags(
           SetObjectTagsArgs.builder()
+              .region(req.getRegion())
               .bucket(req.getBucket())
               .object(req.getObject())
               .tags(tags)
@@ -380,15 +408,69 @@ public class MinioUtil {
 
     List<ComposeSource> sources =
         list.stream()
-            .map(i -> ComposeSource.builder().bucket(i.getBucket()).object(i.getObject()).build())
+            .map(
+                i ->
+                    ComposeSource.builder()
+                        .region(i.getRegion())
+                        .bucket(i.getBucket())
+                        .object(i.getObject())
+                        .build())
             .collect(Collectors.toList());
     try {
       return minioClient.composeObject(
           ComposeObjectArgs.builder()
+              .region(one.getRegion())
               .bucket(one.getBucket())
               .object(one.getObject())
               .sources(sources)
               .build());
+    } catch (ErrorResponseException
+        | InsufficientDataException
+        | InternalException
+        | InvalidKeyException
+        | InvalidResponseException
+        | IOException
+        | NoSuchAlgorithmException
+        | ServerException
+        | XmlParserException e) {
+      throw new UtilException(e);
+    }
+  }
+
+  public ObjectWriteResponse uploadSnowballObjects(UploadSnowballObjectsReq req) {
+    // 多文件上传示例
+    List<SnowballObject> objects = new ArrayList<>();
+
+    try {
+      ZonedDateTime now = ZonedDateTime.now();
+      for (InputStreamObject object : req.getObjects()) {
+        objects.add(
+            new SnowballObject(
+                object.getObjectName(),
+                object.getInputStream(),
+                object.getInputStream().available(),
+                now));
+      }
+
+      ObjectWriteResponse response =
+          minioClient.uploadSnowballObjects(
+              UploadSnowballObjectsArgs.builder()
+                  .region(req.getRegion())
+                  .bucket(req.getBucket())
+                  .objects(objects)
+                  .build());
+
+      req.getObjects().stream()
+          .map(InputStreamObject::getInputStream)
+          .forEach(
+              inputStream -> {
+                try {
+                  inputStream.close();
+                } catch (IOException e) {
+                  throw new RuntimeException(e);
+                }
+              });
+      return response;
     } catch (ErrorResponseException
         | InsufficientDataException
         | InternalException

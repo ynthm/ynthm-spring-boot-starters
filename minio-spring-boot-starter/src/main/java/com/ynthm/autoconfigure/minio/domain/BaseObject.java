@@ -8,8 +8,7 @@ import javax.validation.constraints.NotBlank;
  * @author Ethan Wang
  */
 @Data
-public class BaseObject {
-  @NotBlank private String bucket;
+public class BaseObject extends BucketParam {
   /** object name or path/to/ */
-  @NotBlank private String object;
+  @NotBlank protected String object;
 }

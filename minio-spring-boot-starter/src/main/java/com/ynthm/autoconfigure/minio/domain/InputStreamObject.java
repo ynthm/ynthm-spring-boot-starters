@@ -1,12 +1,14 @@
 package com.ynthm.autoconfigure.minio.domain;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.InputStream;
 
 /**
  * @author Ethan Wang
  */
+@NoArgsConstructor
 @Data
 public class InputStreamObject {
   private String objectName;

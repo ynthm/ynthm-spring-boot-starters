@@ -1,11 +1,22 @@
+server:
+  port: 8080
+  tomcat:
+    max-http-form-post-size: 1024MB
+    basedir: /tmp/minio-demo
+  servlet:
+    encoding:
+      force: true
 spring:
   servlet:
     multipart:
       enabled: true
-      max-file-size: 1024MB
       max-request-size: 1024MB
+      max-file-size: 1024MB
+      file-size-threshold: 2MB
+  application:
+    name: minio-demo
 minio:
   endpoint: http://127.0.0.1:9000
-  access-key: rzuxi8S4DKk6xzdF
-  secret-key: mjyimY3T4nkMEUFtO8DgkBPDoqRyIKOv
+  access-key: ${MINIO_SERVER_ACCESS_KEY:duzx65tsmp2485ZE}
+  secret-key: ${MINIO_SERVER_SECRET_KEY:Fppp5upuQlDhEIENSMl5DwVAzYagFlgp}
   default-bucket-name: bucket-1

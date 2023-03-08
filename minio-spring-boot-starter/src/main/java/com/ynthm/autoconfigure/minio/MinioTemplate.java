@@ -1,9 +1,6 @@
 package com.ynthm.autoconfigure.minio;
 
-import com.ynthm.autoconfigure.minio.domain.BaseObject;
-import com.ynthm.autoconfigure.minio.domain.GetObjectReq;
-import com.ynthm.autoconfigure.minio.domain.PreSignedReq;
-import com.ynthm.autoconfigure.minio.domain.PutObjectReq;
+import com.ynthm.autoconfigure.minio.domain.*;
 import io.minio.ObjectWriteResponse;
 import io.minio.StatObjectResponse;
 import okhttp3.Headers;
@@ -23,18 +20,23 @@ public class MinioTemplate implements MinioOperations {
   }
 
   @Override
-  public boolean bucketExists(String bucket) {
-    return minioUtil.bucketExists(bucket);
+  public boolean bucketExists(BucketParam bucketParam) {
+    return minioUtil.bucketExists(bucketParam);
   }
 
   @Override
-  public void makeBucket(String bucket) {
-    minioUtil.makeBucket(bucket);
+  public void makeBucket(BucketParam bucketParam) {
+    minioUtil.makeBucket(bucketParam);
   }
 
   @Override
-  public ObjectWriteResponse putObject(InputStream inputStream, PutObjectReq req) {
-    return minioUtil.putObject(inputStream, req);
+  public ObjectWriteResponse putObject(PutObjectReq req) {
+    return minioUtil.putObject(req);
+  }
+
+  @Override
+  public ObjectWriteResponse uploadSnowballObjects(UploadSnowballObjectsReq req) {
+    return minioUtil.uploadSnowballObjects(req);
   }
 
   @Override

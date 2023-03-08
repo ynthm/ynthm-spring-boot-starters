@@ -2,7 +2,6 @@ package com.ynthm.autoconfigure.minio.domain;
 
 import lombok.Data;
 
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
@@ -11,7 +10,6 @@ import java.util.List;
  * @version 1.0
  */
 @Data
-public class RemoveObjectsReq {
-  @NotBlank private String bucket;
+public class RemoveObjectsReq extends BucketParam {
   @NotEmpty private List<String> objects;
 }

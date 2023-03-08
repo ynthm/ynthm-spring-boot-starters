@@ -1,21 +1,27 @@
 package com.ynthm.autoconfigure.minio.domain;
 
-import com.ynthm.autoconfigure.minio.config.ContentType;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import javax.validation.constraints.NotBlank;
+import java.io.InputStream;
 import java.util.Map;
 
 /**
  * @author Ethan Wang
  */
+@SuperBuilder
+@NoArgsConstructor
 @Data
-public class PutObjectReq {
-  @NotBlank private String bucket;
+public class PutObjectReq extends BucketParam {
   /** object name or path/to/ */
   @NotBlank private String object;
 
-  private ContentType contentType;
+  /** 文件输入流 */
+  private InputStream stream;
+
+  private String contentType;
 
   private Map<String, String> headers;
   private Map<String, String> userMetadata;

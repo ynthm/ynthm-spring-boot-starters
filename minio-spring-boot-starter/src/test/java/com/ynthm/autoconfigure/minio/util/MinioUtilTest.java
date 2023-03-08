@@ -1,5 +1,6 @@
 package com.ynthm.autoconfigure.minio.util;
 
+import com.google.common.collect.Lists;
 import com.ynthm.autoconfigure.minio.MinioUtil;
 import com.ynthm.autoconfigure.minio.config.ContentType;
 import com.ynthm.autoconfigure.minio.domain.*;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,7 +37,7 @@ class MinioUtilTest {
     minioClient =
         MinioClient.builder()
             .endpoint("http://127.0.0.1:9000")
-            .credentials("rzuxi8S4DKk6xzdF", "mjyimY3T4nkMEUFtO8DgkBPDoqRyIKOv")
+            .credentials("duzx65tsmp2485ZE", "Fppp5upuQlDhEIENSMl5DwVAzYagFlgp")
             .build();
     minioUtil = new MinioUtil(minioClient);
   }
@@ -45,9 +47,11 @@ class MinioUtilTest {
 
   @Test
   void createBucket() {
-    if (!minioUtil.bucketExists(BUCKET_NAME)) {
-      minioUtil.makeBucket(BUCKET_NAME);
-      Assertions.assertTrue(minioUtil.bucketExists(BUCKET_NAME));
+    BucketParam param = new BucketParam();
+    param.setBucket(BUCKET_NAME);
+    if (!minioUtil.bucketExists(param)) {
+      minioUtil.makeBucket(param);
+      Assertions.assertTrue(minioUtil.bucketExists(param));
     }
   }
 
@@ -68,9 +72,9 @@ class MinioUtilTest {
     PutObjectReq req = new PutObjectReq();
     req.setBucket(BUCKET_NAME);
     req.setObject("abc.jpg");
-    req.setContentType(ContentType.JPG);
-    ObjectWriteResponse response =
-        minioUtil.putObject(new ClassPathResource("alain-bonnardeaux.jpg").getInputStream(), req);
+    req.setContentType(ContentType.JPG.getValue());
+    req.setStream(new ClassPathResource("alain-bonnardeaux.jpg").getInputStream());
+    ObjectWriteResponse response = minioUtil.putObject(req);
     System.out.println(response.headers());
     Assertions.assertNotNull(response.headers().get("ETAG"));
   }
@@ -228,5 +232,29 @@ class MinioUtilTest {
     } else {
       System.out.println("Failed to upload");
     }
+  }
+
+  @Test
+  void uploadSnowballObjects() throws IOException {
+    List<InputStreamObject> list = Lists.newArrayList();
+    for (int i = 1; i <= 3; i++) {
+      String fileName = String.format("auntie-%d.png", i);
+      list.add(
+          new InputStreamObject(fileName, new ClassPathResource("auntie-1.png").getInputStream()));
+    }
+
+    UploadSnowballObjectsReq uploadSnowballObjectsReq = new UploadSnowballObjectsReq();
+    uploadSnowballObjectsReq.setBucket(BUCKET_NAME);
+    uploadSnowballObjectsReq.setObjects(list);
+    minioUtil.uploadSnowballObjects(uploadSnowballObjectsReq);
+  }
+
+  @Test
+  void stats() throws Exception {
+    StatObjectResponse statObjectResponse =
+        minioClient.statObject(
+            StatObjectArgs.builder().bucket(BUCKET_NAME).object("auntie-1.png").build());
+
+    System.out.println(statObjectResponse.contentType());
   }
 }
