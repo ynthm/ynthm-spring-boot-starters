@@ -1,26 +1,29 @@
 package com.ynthm.demo.minio;
 
 import com.google.common.collect.Lists;
+import com.google.common.net.HttpHeaders;
 import com.ynthm.autoconfigure.minio.MinioTemplate;
-import com.ynthm.autoconfigure.minio.config.MinoClientProperties;
+import com.ynthm.autoconfigure.minio.config.MinioClientProperties;
 import com.ynthm.autoconfigure.minio.domain.*;
+import com.ynthm.common.constant.StringPool;
 import com.ynthm.common.domain.Result;
+import com.ynthm.common.util.FileUtil;
+import com.ynthm.common.util.id.IdUtil;
 import com.ynthm.common.web.util.ServletUtil;
+import com.ynthm.demo.minio.constant.MinioConst;
 import com.ynthm.demo.minio.domain.ObjectItem;
 import com.ynthm.demo.minio.domain.ObjectItemListReq;
+import com.ynthm.demo.minio.domain.StatObjectResp;
 import io.minio.ObjectWriteResponse;
+import io.minio.StatObjectResponse;
 import io.minio.http.Method;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.MediaType;
-import org.springframework.util.FileCopyUtils;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.util.WebUtils;
-
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,24 +31,32 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.MediaTypeFactory;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.WebUtils;
 
 /**
  * @author Ethan Wang
  */
 @Slf4j
 @RestController
-@RequestMapping("/files")
 public class FileController {
   private MinioTemplate minioTemplate;
 
-  @Autowired private MinoClientProperties minoClientProperties;
+  private MinioClientProperties minioClientProperties;
+
+  @Autowired
+  public void setMinioClientProperties(MinioClientProperties minioClientProperties) {
+    this.minioClientProperties = minioClientProperties;
+  }
 
   @Resource
   public void setMinioTemplate(MinioTemplate minioTemplate) {
@@ -54,28 +65,51 @@ public class FileController {
 
   @PostMapping("/preSignedObjectUrl")
   public String preSignedObjectUrl(@Valid @RequestBody PreSignedReq req) {
-    req.setMethod(Method.GET);
     return minioTemplate.preSignedObjectUrl(req);
   }
 
   @GetMapping("/preSignedObjectUrl/{object}")
-  public String share(@PathVariable("object") String fileName) {
+  public String preSignedObjectUrl(@PathVariable("object") String filename) {
     PreSignedReq req = new PreSignedReq();
-    req.setBucket(minoClientProperties.getDefaultBucketName());
-    req.setObject(fileName);
     req.setMethod(Method.GET);
+    req.setBucket(minioClientProperties.getDefaultBucket());
+    req.setObject(filename);
+
+    return minioTemplate.preSignedObjectUrl(req);
+  }
+
+  @GetMapping("/buckets/{bucketName}/preSignedObjectUrl/{object}")
+  public String preSignedObjectUrl(
+      @PathVariable("bucketName") String bucketName, @PathVariable("object") String filename) {
+    PreSignedReq req = new PreSignedReq();
+    req.setMethod(Method.GET);
+    req.setBucket(bucketName);
+    req.setObject(filename);
     return minioTemplate.preSignedObjectUrl(req);
   }
 
   @PostMapping("/preSignedObjectUrls")
-  public @NotEmpty List<ObjectItem> fileUrls(@RequestBody ObjectItemListReq req) {
-    preSignedRequest(req, minoClientProperties.getDefaultBucketName());
+  public @NotEmpty List<ObjectItem> fileUrls(@Validated @RequestBody ObjectItemListReq req) {
+    preSignedRequest(req, minioClientProperties.getDefaultBucket());
     return req.getList();
   }
 
   @PostMapping("/buckets/{bucketName}/preSignedObjectUrls")
   public @NotEmpty List<ObjectItem> fileUrls(
-      @PathVariable("bucketName") String bucketName, @RequestBody ObjectItemListReq req) {
+      @PathVariable("bucketName") String bucketName,
+      @Validated @RequestBody ObjectItemListReq req) {
+    // 判断 bucket 为公共时直接返回
+    if (bucketName.equals(minioClientProperties.getDefaultPublicBucket())) {
+      for (ObjectItem objectItem : req.getList()) {
+        objectItem.setUrl(
+            minioClientProperties.getEndpoint()
+                + File.separator
+                + bucketName
+                + File.separator
+                + objectItem.getObject());
+      }
+    }
+
     preSignedRequest(req, bucketName);
     return req.getList();
   }
@@ -97,7 +131,7 @@ public class FileController {
    * @return
    */
   @PostMapping(value = "/upload", consumes = "multipart/form-data")
-  public Result<Void> upload(HttpServletRequest request, @RequestPart("file") MultipartFile file)
+  public Result<String> upload(HttpServletRequest request, @RequestPart("file") MultipartFile file)
       throws IOException {
     log.info("request character encoding: {}", request.getCharacterEncoding());
 
@@ -113,14 +147,22 @@ public class FileController {
         WebUtils.DEFAULT_CHARACTER_ENCODING,
         StandardCharsets.UTF_8.name());
     log.info("file mime type: {}", request.getServletContext().getMimeType(originalFilename));
+    log.info(
+        "file mime type: {}",
+        MediaTypeFactory.getMediaType(originalFilename).orElse(MediaType.ALL));
 
+    String generatedName =
+        IdUtil.nextId() + StringPool.DOT + FileUtil.getExtension(file.getOriginalFilename());
+    Map<String, String> userMetadata = new HashMap<>();
+    userMetadata.put(MinioConst.FILENAME, file.getOriginalFilename());
     try {
       ObjectWriteResponse objectWriteResponse =
           minioTemplate.putObject(
               PutObjectReq.builder()
-                  .bucket(minoClientProperties.getDefaultBucketName())
-                  .object(file.getOriginalFilename())
+                  .bucket(minioClientProperties.getDefaultBucket())
+                  .object(generatedName)
                   .contentType(contentType)
+                  .userMetadata(userMetadata)
                   .stream(file.getInputStream())
                   .objectSize(file.getSize())
                   .build());
@@ -136,28 +178,41 @@ public class FileController {
             .getResponse();
     assert response != null;
     log.info("response charset: {}", response.getCharacterEncoding());
-    return Result.ok();
+    return Result.ok(generatedName);
   }
 
   @PostMapping(value = "/buckets/{bucketName}/upload")
-  public Result<Void> upload(
-      @NotNull @RequestPart("file") MultipartFile file,
-      @NotBlank @PathVariable("bucketName") String bucketName)
+  public Result<String> upload(
+      HttpServletRequest request,
+      @NotBlank @PathVariable("bucketName") String bucketName,
+      @NotNull @RequestPart("file") MultipartFile file)
       throws IOException {
 
+    String generatedName =
+        IdUtil.nextId() + StringPool.DOT + FileUtil.getExtension(file.getOriginalFilename());
+    // header 暂时不知道效果
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HttpHeaders.USER_AGENT, request.getHeader(HttpHeaders.USER_AGENT));
+    Map<String, String> userMetadata = new HashMap<>();
+    userMetadata.put(MinioConst.FILENAME, file.getOriginalFilename());
+
     minioTemplate.putObject(
-        PutObjectReq.builder().bucket(bucketName).object(file.getOriginalFilename()).stream(
-                file.getInputStream())
+        PutObjectReq.builder()
+            .bucket(bucketName)
+            .headers(headers)
+            .userMetadata(userMetadata)
+            .object(generatedName)
+            .stream(file.getInputStream())
             .contentType(file.getContentType())
             .objectSize(file.getSize())
             .build());
 
-    return Result.ok();
+    return Result.ok(generatedName);
   }
 
   @PostMapping("/upload/multi")
   public void multiUpload(@RequestParam("files") MultipartFile[] files) throws Exception {
-    multiUploadFiles(minoClientProperties.getDefaultBucketName(), files);
+    multiUploadFiles(minioClientProperties.getDefaultBucket(), files);
   }
 
   @PostMapping("/buckets/{bucketName}/upload/multi")
@@ -181,18 +236,58 @@ public class FileController {
     minioTemplate.uploadSnowballObjects(uploadSnowballObjectsReq);
   }
 
-  @RequestMapping("/download")
-  public String fileDownLoad(
-      HttpServletResponse response, @RequestParam("fileName") String fileName) {
+  @PostMapping("/stat")
+  public Result<StatObjectResp> stat(@Validated @RequestBody BaseObject baseObject) {
+    StatObjectResponse statObjectResponse = minioTemplate.statObject(baseObject);
+    StatObjectResp statObjectResp = new StatObjectResp();
+    statObjectResp.setEtag(statObjectResponse.etag());
+    statObjectResp.setSize(statObjectResponse.size());
+    statObjectResp.setUserMetadata(statObjectResponse.userMetadata());
+    statObjectResp.setHeaders(statObjectResponse.headers().toMultimap());
+    return Result.ok(statObjectResp);
+  }
 
-    // stat 下载文件不存在
+  /**
+   * 下载
+   *
+   * <p>注意这个地方必须放回 void 不然无法根据Content-Type转换返回值 或者通过 response.reset() 置空 ContentType
+   *
+   * @param response
+   * @param filename
+   */
+  @RequestMapping("/download")
+  public void fileDownLoad(
+      HttpServletResponse response, @RequestParam("filename") String filename) {
+    fileDownLoad(minioClientProperties.getDefaultBucket(), filename, response);
+  }
+
+  @RequestMapping("/buckets/{bucketName}/objects/download")
+  public void fileDownLoad(
+      @NotBlank @PathVariable("bucketName") String bucketName,
+      HttpServletResponse response,
+      @RequestParam("filename") String filename) {
+    // /buckets/bucket-1/objects/download
+    fileDownLoad(bucketName, filename, response);
+  }
+
+  public void fileDownLoad(String bucketName, String object, HttpServletResponse response) {
+    BaseObject baseObject = new BaseObject();
+    baseObject.setBucket(bucketName);
+    baseObject.setObject(object);
+    StatObjectResponse statObjectResponse = minioTemplate.statObject(baseObject);
+    // 文件不存在直接报错
+    String filename = statObjectResponse.userMetadata().getOrDefault(MinioConst.FILENAME, object);
+
+    response.reset();
+    ServletUtil.responseForDownload(response, statObjectResponse.contentType(), filename);
+
     GetObjectReq getObjectReq = new GetObjectReq();
-    getObjectReq.setBucket(minoClientProperties.getDefaultBucketName());
-    getObjectReq.setObject(fileName);
+    getObjectReq.setBucket(bucketName);
+    getObjectReq.setObject(object);
     minioTemplate.getObject(
         getObjectReq,
         headers -> {
-          System.out.println(headers);
+          log.debug(headers.toString());
         },
         stream -> {
           try {
@@ -201,46 +296,5 @@ public class FileController {
             throw new RuntimeException(e);
           }
         });
-
-    response.reset();
-    ServletUtil.responseForDownload(response, fileName);
-
-    //    response.reset();
-    //    response.setContentType("application/octet-stream");
-    //    response.setCharacterEncoding("utf-8");
-    //    response.setContentLength((int) file.length());
-    //    response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
-
-    //    try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file)); ) {
-    //      byte[] buff = new byte[1024];
-    //      OutputStream os = response.getOutputStream();
-    //      int i = 0;
-    //      while ((i = bis.read(buff)) != -1) {
-    //        os.write(buff, 0, i);
-    //        os.flush();
-    //      }
-    //    } catch (IOException e) {
-    //      log.error("{}", e);
-    //      return "下载失败";
-    //    }
-    return "下载成功";
-  }
-
-  public void downlo() {
-    // /buckets/bucket-1/objects/download
-  }
-
-  public static void main(String[] args) throws UnsupportedEncodingException {
-    ContentDisposition contentDisposition =
-        ContentDisposition.builder("form-data")
-            .filename("转 正.docx", StandardCharsets.UTF_8)
-            .name("file")
-            .build();
-    System.out.println(contentDisposition);
-    ContentDisposition disposition = ContentDisposition.parse(contentDisposition.toString());
-    String file = URLEncoder.encode("转 正.docx", StandardCharsets.UTF_8.name());
-    System.out.println(file);
-    System.out.println(URLDecoder.decode(file, StandardCharsets.UTF_8.name()));
-    System.out.println(URLEncoder.encode("hello world", StandardCharsets.UTF_8.name()));
   }
 }

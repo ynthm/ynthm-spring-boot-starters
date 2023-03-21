@@ -1,9 +1,8 @@
 package com.ynthm.demo.minio.domain;
 
-import lombok.Data;
-
-import javax.validation.constraints.NotEmpty;
 import java.util.List;
+import javax.validation.constraints.NotEmpty;
+import lombok.Data;
 
 /**
  * @author Ethan Wang
@@ -11,6 +10,5 @@ import java.util.List;
  */
 @Data
 public class ObjectItemListReq {
-  @NotEmpty
-  private List<ObjectItem> list;
+  @NotEmpty private List<ObjectItem> list;
 }

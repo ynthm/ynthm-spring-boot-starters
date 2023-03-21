@@ -13,6 +13,6 @@ public class MinioDemoApplication {
 
   public static void main(String[] args) {
     SpringApplication.run(MinioDemoApplication.class, args);
-    log.info("=====================(♥◠‿◠)ﾉﾞ  启动成功   ლ(´ڡ`ლ)ﾞ =============================");
+    log.info("==========   🌝🌛🌜🌚🌕🌖🌗🌘🌑🌒🌓🌔🌙   ==========");
   }
 }
