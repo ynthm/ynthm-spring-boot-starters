@@ -1,12 +1,11 @@
 package com.ynthm.autoconfigure.minio.domain;
 
+import java.io.InputStream;
+import java.util.Map;
+import javax.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-
-import javax.validation.constraints.NotBlank;
-import java.io.InputStream;
-import java.util.Map;
 
 /**
  * @author Ethan Wang
@@ -27,7 +26,16 @@ public class PutObjectReq extends BucketParam {
   private Map<String, String> userMetadata;
 
   /** -1 不知道输入流大小 */
-  private long objectSize = -1L;
+  private long objectSize;
 
-  private long partSize = objectSize == -1L ? 10485760L : -1L;
+  private long partSize;
+
+  public long getObjectSize() {
+    return objectSize <= 0L ? -1L : objectSize;
+  }
+
+  public long getPartSize() {
+    // valid part size must be provided when object size is unknown
+    return objectSize <= 0L && partSize <= 0L ? 10485760L : partSize;
+  }
 }
