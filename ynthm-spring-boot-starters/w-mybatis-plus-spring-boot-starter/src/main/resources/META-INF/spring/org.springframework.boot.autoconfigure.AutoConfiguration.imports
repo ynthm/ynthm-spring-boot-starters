@@ -1,0 +1,2 @@
+com.ynthm.autoconfigure.mybatis.plus.config.MybatisPlusConfig
+com.ynthm.autoconfigure.mybatis.plus.config.BaseMapperScanConfig

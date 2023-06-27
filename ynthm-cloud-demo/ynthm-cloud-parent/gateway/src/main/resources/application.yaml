@@ -1,0 +1,51 @@
+server:
+  port: 9999
+  shutdown: graceful
+
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE
+    org.springframework.http.server.reactive: DEBUG
+    org.springframework.web.reactive: DEBUG
+    reactor.ipc.netty: DEBUG
+    reactor.netty: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
+spring:
+  application:
+    name: ynthm-gateway
+  data:
+    redis:
+      host: 192.168.3.179
+      port: 6379
+      password: root
+  cloud:
+    gateway:
+      default-filters:
+        - AddResponseHeader=X-Response-Default-Foo, Default-Bar
+
+      routes:
+        # =====================================
+        - id: default_path_to_httpbin
+          uri: https://httpbin.org
+          order: 10000
+          predicates:
+            - Path=/httpbin/**
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9000
+          jwk-set-uri: http://localhost:9000/oauth2/jwks
+ynthm:
+  jwt:
+    privateKey: classpath:app.key
+    publicKey: classpath:app.pub
+  whitelist-urls:
+    - "/actuator/**"
+    - "/auth/oauth/token"
