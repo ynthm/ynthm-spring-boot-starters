@@ -18,7 +18,7 @@ import java.util.Set;
  */
 public interface PushOperations {
   Result<PushDto> sendNotificationWithAlias(
-          WePlatform platform, Notification notification, Option option, Collection<String> aliases);
+      WePlatform platform, Notification notification, Option option, Collection<String> aliases);
 
   Result<PushDto> sendNotificationWithRegistrationId(
       WePlatform platform, Notification notification, Collection<String> registrationId);
@@ -26,6 +26,15 @@ public interface PushOperations {
   Result<PushDto> sendMessageWithAlias(
       WePlatform platform, String title, String msgContent, Collection<String> aliases);
 
+  /**
+   * 发送自定义消息
+   *
+   * @param platform
+   * @param title
+   * @param msgContent
+   * @param registrationId
+   * @return
+   */
   Result<PushDto> sendMessageWithRegistrationId(
       WePlatform platform, String title, String msgContent, Collection<String> registrationId);
 

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.experimental.Accessors;
 
 /**
@@ -59,7 +60,7 @@ public class Result<T> {
   }
 
   public static <T> Result<T> error(ResultCode errorCode) {
-    return of(null, errorCode.getCode(), errorCode.getMessage(), null);
+    return of(null, errorCode.getCode(), errorCode.getMessage());
   }
 
   public static <T> Result<T> error(ResultCode errorCode, String message) {
@@ -82,22 +83,25 @@ public class Result<T> {
   }
 
   public static <T> Result<T> of(ResultCode resultCode, T data) {
-    return of(data, resultCode.getCode(), resultCode.getMessage(), null);
+    return of(data, resultCode.getCode(), resultCode.getMessage());
   }
 
   public static <T> Result<T> ofMessage(ResultCode resultCode, String message) {
-    return of(null, resultCode.getCode(), message, null);
+    return of(null, resultCode.getCode(), message);
   }
 
   public static <T> Result<T> of(T data, int code, String msg) {
-    return of(data, code, msg, null);
-  }
-
-  public static <T> Result<T> of(T data, int code, String msg, List<ErrorItem> errors) {
     Result<T> apiResult = new Result<>();
     apiResult.setCode(code);
     apiResult.setMsg(msg);
     apiResult.setData(data);
+    return apiResult;
+  }
+
+  public static <T> Result<T> error(int code, String msg, List<ErrorItem> errors) {
+    Result<T> apiResult = new Result<>();
+    apiResult.setCode(code);
+    apiResult.setMsg(msg);
     apiResult.setErrors(errors);
     return apiResult;
   }
@@ -122,8 +126,7 @@ public class Result<T> {
       if (Objects.nonNull(result.getErrors())) {
         errorItems.addAll(result.getErrors());
       }
-      return Result.of(
-          null,
+      return Result.error(
           BaseResultCode.INTERNAL_ERROR.getCode(),
           BaseResultCode.INTERNAL_ERROR.getMessage(),
           errorItems);
@@ -148,6 +151,6 @@ public class Result<T> {
   }
 
   private static <T, S> Result<T> transferMassage(Result<S> result) {
-    return Result.of(null, result.getCode(), result.getMsg(), result.getErrors());
+    return Result.error(result.getCode(), result.getMsg(), result.getErrors());
   }
 }

@@ -1,5 +1,6 @@
 package com.ynthm.common.domain;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,10 +12,11 @@ import java.io.Serializable;
  *
  * @author Ethan Wang
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ErrorItem implements Serializable {
-  private String code;
-  private String msg;
+  protected String code;
+  protected String msg;
 }

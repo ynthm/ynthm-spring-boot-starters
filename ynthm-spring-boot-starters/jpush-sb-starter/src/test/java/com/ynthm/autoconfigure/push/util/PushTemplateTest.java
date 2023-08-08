@@ -12,21 +12,17 @@ import cn.jpush.api.push.model.Platform;
 import cn.jpush.api.push.model.PushPayload;
 import cn.jpush.api.push.model.audience.Audience;
 import cn.jpush.api.push.model.audience.AudienceTarget;
-import cn.jpush.api.push.model.notification.AndroidNotification;
-import cn.jpush.api.push.model.notification.IosNotification;
-import cn.jpush.api.push.model.notification.Notification;
-import cn.jpush.api.push.model.notification.PlatformNotification;
+import cn.jpush.api.push.model.notification.*;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 import com.ynthm.autoconfigure.push.domain.dto.PushDto;
 import com.ynthm.autoconfigure.push.domain.model.Option;
 import com.ynthm.autoconfigure.push.domain.model.WePlatform;
 import com.ynthm.common.domain.Result;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Ethan Wang
@@ -49,12 +45,16 @@ class PushTemplateTest {
     AliasDeviceListResult aliasDeviceList =
         jPushClient.getAliasDeviceList("ca6fe172b0e946338edaaf43fa658e01", DeviceType.IOS.value());
     System.out.println(aliasDeviceList.registration_ids);
+
+
+    Notification.android("hello", "title", new HashMap<>());
   }
 
   @Test
   void sendNotificationWithAlias() {
-    String message = "hello ethan";
+    String message = "你好！";
     Map<String, String> extras = new HashMap<>();
+    extras.put("message-sender", "ynthm@192.168.3.199/Spark");
 
     Result<PushDto> result =
         pushTemplate.sendNotificationWithAlias(
@@ -62,9 +62,9 @@ class PushTemplateTest {
             Notification.newBuilder()
                 .addPlatformNotification(
                     IosNotification.newBuilder()
-                        .setAlert(message)
+                        .setAlert(IosAlert.newBuilder().setTitleAndBody("zhang", null, message).build())
                         .incrBadge(1)
-                        .setSound("sound")
+                        .setSound("default")
                         .setContentAvailable(true)
                         .addExtras(extras)
                         .build())
@@ -74,12 +74,12 @@ class PushTemplateTest {
 
     System.out.println(result.getCode());
   }
-
+  
   @Test
   void sendAndroidNotificationWithAlias() {
     String message = "hello ethan！！！";
     Map<String, String> extras = new HashMap<>();
-
+    extras.put("123123", "123");
     // Android 通知点击跳转
     JsonObject intent = new JsonObject();
     intent.addProperty(
@@ -94,15 +94,53 @@ class PushTemplateTest {
                     AndroidNotification.newBuilder()
                         .setAlert(message)
                         .addExtras(extras)
-                        .addExtra("third_url_encode", true)
+                        .setTitle("用户名")
                         .setIntent(intent)
                         .setBadgeAddNum(1)
-                        .setBadgeClass("com.apipecloud.ui.activity.SplashActivity")
+                        //
+                        // .setBadgeClass("com.apipecloud.ui.activity.SplashActivity")
+                        //
+                        //
                         .setUriAction("com.apipecloud.ui.activity.OpenClickActivity")
                         .build())
                 .build(),
             Option.builder().thirdPartyChannel(thirdPartyChannel()).build(),
-            Sets.newHashSet("9362b1a915734ecbb8715580329a35e3"));
+            Sets.newHashSet("218d105f4f68401eb1926b6f3dce065c"));
+    // 15013734208 218d105f4f68401eb1926b6f3dce065c
+    System.out.println(result.getCode());
+  }
+
+  @Test
+  void sendNotificationWithRegistrationId() {
+    String message = "hello world！！！";
+    Map<String, String> extras = new HashMap<>();
+    extras.put("123123", "123");
+    // Android 通知点击跳转
+    JsonObject intent = new JsonObject();
+    intent.addProperty(
+            "url",
+            "intent:#Intent;action=com.apipecloud.ui.activity.OpenClickActivity;component=com.apipecloud/com.apipecloud.ui.activity.OpenClickActivity;end");
+
+    Result<PushDto> result =
+            pushTemplate.sendNotificationWithRegistrationId(
+                    WePlatform.android(),
+                    Notification.newBuilder()
+                            .addPlatformNotification(
+                                    AndroidNotification.newBuilder()
+                                            .setAlert(message)
+                                            .addExtras(extras)
+                                            .setTitle("用户名")
+//                                            .setIntent(intent)
+                                            .setBadgeAddNum(1)
+                                            //
+                                            // .setBadgeClass("com.apipecloud.ui.activity.SplashActivity")
+                                            //
+                                            //
+//                                            .setUriAction("com.apipecloud.ui.activity.OpenClickActivity")
+                                            .build())
+                            .build(),
+                    Sets.newHashSet("13065ffa4f173217e70"));
+    // 15013734208 13065ffa4f173217e70
     System.out.println(result.getCode());
   }
 
@@ -149,13 +187,23 @@ class PushTemplateTest {
   }
 
   @Test
-  void sendNotificationWithRegistrationId() {}
-
-  @Test
   void sendMessageWithAlias() {}
 
   @Test
-  void sendMessageWithRegistrationId() {}
+  void sendMessageWithRegistrationId() {
+    String message = "hello world！！！";
+    Map<String, String> extras = new HashMap<>();
+    extras.put("name", "ethan");
+
+    Result<PushDto> result =
+            pushTemplate.sendMessageWithRegistrationId(
+                    WePlatform.android(),
+                    "title",
+                    message,
+                    Sets.newHashSet("13065ffa4f173217e70"));
+    // 15013734208 13065ffa4f173217e70
+    System.out.println(result.getCode());
+  }
 
   @Test
   void pushNotifyAndMessage() {}

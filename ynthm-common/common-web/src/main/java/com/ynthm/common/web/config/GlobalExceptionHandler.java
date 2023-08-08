@@ -4,12 +4,14 @@ import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.MoreObjects;
+import com.ynthm.common.domain.BindError;
+import com.ynthm.common.domain.ErrorItem;
 import com.ynthm.common.domain.Result;
 import com.ynthm.common.enums.BaseResultCode;
 import com.ynthm.common.exception.BaseException;
 import com.ynthm.common.util.ExceptionUtil;
 import com.ynthm.common.web.exception.CarryDataException;
-import com.ynthm.common.web.validate.BindError;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
@@ -311,8 +313,8 @@ public class GlobalExceptionHandler extends BasicErrorController {
   public Result<ArrayList<BindError>> handleValidException(MethodArgumentNotValidException e) {
     log.error(e.getLocalizedMessage(), e);
     HttpStatus status = HttpStatus.BAD_REQUEST;
-    return Result.of(
-        wrapperBindingResult(e.getBindingResult()), status.value(), status.getReasonPhrase(), null);
+    return Result.error(
+        status.value(), status.getReasonPhrase(), wrapperBindingResult(e.getBindingResult()));
   }
 
   /**
@@ -338,19 +340,15 @@ public class GlobalExceptionHandler extends BasicErrorController {
    * @param bindingResult 绑定结果
    * @return 异常结果
    */
-  private ArrayList<BindError> wrapperBindingResult(BindingResult bindingResult) {
+  private List<ErrorItem> wrapperBindingResult(BindingResult bindingResult) {
     return bindingResult.getAllErrors().stream()
         .map(
             error -> {
               if (error instanceof FieldError) {
-                return new BindError()
-                    .setCode(error.getCode())
-                    .setField(((FieldError) error).getField())
-                    .setMessage(error.getDefaultMessage());
+                return new BindError(
+                    error.getCode(), error.getDefaultMessage(), ((FieldError) error).getField());
               } else {
-                return new BindError()
-                    .setCode(error.getCode())
-                    .setMessage(error.getDefaultMessage());
+                return new ErrorItem(error.getCode(), error.getDefaultMessage());
               }
             })
         .collect(Collectors.toCollection(ArrayList::new));
@@ -367,7 +365,7 @@ public class GlobalExceptionHandler extends BasicErrorController {
     if (e instanceof JacksonException) {
       return Result.error(BaseResultCode.ERROR, ((JacksonException) e).getOriginalMessage());
     } else if (e instanceof ValidationException) {
-      return Result.of(null, HttpStatus.BAD_REQUEST.value(), e.getLocalizedMessage(), null);
+      return Result.error(HttpStatus.BAD_REQUEST.value(), e.getLocalizedMessage(), null);
     }
     log.error(ExceptionUtil.printStackTrace(e));
     return Result.error(BaseResultCode.ERROR, getMessage(e));

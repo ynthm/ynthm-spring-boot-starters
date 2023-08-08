@@ -56,7 +56,7 @@ public class PushTemplate implements PushOperations {
               .setPlatform(ModelTransfer.platform(platform))
               .setAudience(Audience.alias(aliases))
               .setNotification(notification)
-              .setOptions(opBuilder.build())
+              .setOptions(opBuilder.build()).setMessage(Message.newBuilder().build())
               .build();
 
       PushResult result = client.sendPush(payload);
