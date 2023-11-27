@@ -1,5 +1,6 @@
 package com.ynthm.common.domain;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.common.collect.Lists;
 import com.ynthm.common.enums.BaseResultCode;
 import com.ynthm.common.enums.ResultCode;
@@ -16,6 +17,7 @@ import lombok.experimental.Accessors;
  *
  * @author Ethan Wang
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
 @Accessors(chain = true)
 public class Result<T> {

@@ -2,12 +2,12 @@ package com.ynthm.autoconfigure.excel.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ynthm.autoconfigure.excel.domain.ExportExtraData;
-import com.ynthm.common.domain.PageReq;
-import com.ynthm.common.domain.PageResp;
 import com.ynthm.common.domain.Result;
+import com.ynthm.common.domain.page.PageReq;
+import com.ynthm.common.domain.page.PageResp;
 import com.ynthm.common.enums.BaseResultCode;
 import com.ynthm.common.exception.BaseException;
-import com.ynthm.common.web.util.ServletUtil;
+import com.ynthm.common.web.core.util.ServletUtil;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -29,6 +29,50 @@ public class ExcelHelper {
 
   public ExcelHelper(ObjectMapper objectMapper) {
     this.objectMapper = objectMapper;
+  }
+
+  public <T extends Serializable, P extends Serializable> void export1(
+      HttpServletResponse response,
+      String fileName,
+      ExportExtraData<T> extraData,
+      P param,
+      Function<PageReq<P>, Result<PageResp<T>>> function) {
+    try {
+
+      PageReq<P> pageReq = new PageReq<>();
+      pageReq.setPage(1).setSize(0).setParam(param);
+      Result<PageResp<T>> countR = function.apply(pageReq);
+      if (!countR.success()) {
+        ServletUtil.renderString(response, objectMapper.writeValueAsString(countR));
+        return;
+      }
+
+      if (countR.getData().getTotal() == 0) {
+        ServletUtil.renderString(
+            response,
+            objectMapper.writeValueAsString(Result.error(BaseResultCode.NONE_DATA_EXPORT)));
+        return;
+      }
+
+      String tempFileName = fileName + "_" + Instant.now().getEpochSecond();
+      ServletUtil.responseForExcel(response, tempFileName);
+
+      ExcelUtil excelUtil = new ExcelUtil();
+      //      excelUtil.export(extraData, response.getOutputStream(), param, function);
+
+    } catch (Exception e) {
+      // 重置 response
+      log.error("导出 Excel 失败", e);
+      response.reset();
+      try {
+        ServletUtil.renderString(
+            response,
+            objectMapper.writeValueAsString(
+                Result.error(BaseResultCode.EXCEL_EXPORT_FAILED, e.getMessage())));
+      } catch (IOException ex) {
+        throw new BaseException(ex);
+      }
+    }
   }
 
   /**

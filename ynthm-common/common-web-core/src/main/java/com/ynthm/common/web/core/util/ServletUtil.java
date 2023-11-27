@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
+import org.springframework.lang.Nullable;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -34,6 +35,10 @@ public class ServletUtil {
   public static final String IPV6_DEFAULT = "0:0:0:0:0:0:0:1";
 
   public static final int IPV4_LENGTH = 15;
+  /** Excel 类型Content-Type */
+  public static final String CONTENT_TYPE_EXCEL = "application/vnd.ms-excel;charset=utf-8";
+
+  public static final String XLSX = ".xlsx";
 
   private ServletUtil() {}
 
@@ -62,13 +67,9 @@ public class ServletUtil {
     return getRequest().getSession();
   }
 
+  @Nullable
   public static ServletRequestAttributes getRequestAttributes() {
-    try {
-      RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
-      return (ServletRequestAttributes) attributes;
-    } catch (Exception e) {
-      throw new BaseException(e);
-    }
+    return (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
   }
 
   public static String contentDispositionAttachment(String filename) {
@@ -95,12 +96,6 @@ public class ServletUtil {
     }
   }
 
-  /**
-   * Excel 类型Content-Type
-   */
-  public static final String CONTENT_TYPE_EXCEL = "application/vnd.ms-excel;charset=utf-8";
-  public static final String XLSX = ".xlsx";
-  
   public static void responseForExcel(HttpServletResponse response, String fileName) {
     response.setContentType(CONTENT_TYPE_EXCEL);
     response.setCharacterEncoding(StandardCharsets.UTF_8.name());
@@ -111,7 +106,7 @@ public class ServletUtil {
       throw new BaseException(e);
     }
     response.setHeader(
-            HttpHeaders.CONTENT_DISPOSITION, "attachment;filename*=utf-8''" + fileName + XLSX);
+        HttpHeaders.CONTENT_DISPOSITION, "attachment;filename*=utf-8''" + fileName + XLSX);
   }
 
   private static String encode(String fileName) throws UnsupportedEncodingException {

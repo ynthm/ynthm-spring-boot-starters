@@ -32,6 +32,7 @@ public enum BaseResultCode implements ResultCode, ResultExceptionAssert {
   DB_EXIST(2002, "数据库已存在"),
 
   EXCEL_EXPORT_FAILED(10000, "Excel 导出异常"),
+  NONE_DATA_EXPORT(10001, "无数据导出"),
 
   INTERNAL_ERROR(90000, "微服务内部错误"),
   /** 调用第三方服务发生错误 */

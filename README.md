@@ -1,3 +1,1 @@
-# Ynthm's Spring Boot Starters
-
-## MinIO
+# Ynthm's Spring Boot Starters## MinIO
