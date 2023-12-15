@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -12,12 +14,10 @@ import lombok.experimental.Accessors;
  */
 @Accessors(chain = true)
 @Data
-public class PageReq<P extends Serializable> implements Serializable {
-
-  private static final long serialVersionUID = 1L;
+public class PageValidReq<P extends Serializable> implements Serializable {
 
   /** 查询參數 */
-  protected P param;
+  @Valid @NotNull protected P param;
 
   /** 每页显示条数，默认 10 */
   protected int size = 10;
@@ -30,13 +30,13 @@ public class PageReq<P extends Serializable> implements Serializable {
 
   private boolean searchCount = true;
 
-  public PageReq() {
+  public PageValidReq() {
     // 空构造器
   }
 
   /** --------------- 以下为静态构造方式 --------------- */
-  public static <P extends Serializable> PageReq<P> of(int page, int size) {
-    return new PageReq<P>().setPage(page).setSize(size);
+  public static <P extends Serializable> PageValidReq<P> of(int page, int size) {
+    return new PageValidReq<P>().setPage(page).setSize(size);
   }
 
   /**

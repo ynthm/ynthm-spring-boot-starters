@@ -9,7 +9,7 @@ import com.ynthm.common.constant.StringPool;
 import com.ynthm.common.domain.Result;
 import com.ynthm.common.util.FileUtil;
 import com.ynthm.common.util.id.IdUtil;
-import com.ynthm.common.web.util.ServletUtil;
+import com.ynthm.common.web.core.util.ServletUtil;
 import com.ynthm.demo.minio.constant.MinioConst;
 import com.ynthm.demo.minio.domain.ObjectItem;
 import com.ynthm.demo.minio.domain.ObjectItemListReq;
@@ -181,6 +181,7 @@ public class FileController {
     return Result.ok(generatedName);
   }
 
+  @Validated
   @PostMapping(value = "/buckets/{bucketName}/upload")
   public Result<String> upload(
       HttpServletRequest request,

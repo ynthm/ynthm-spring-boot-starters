@@ -72,19 +72,29 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>com.ynthm.common</groupId>
+                <artifactId>common-core</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ynthm.common</groupId>
+                <artifactId>common-web-core</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
                 <groupId>com.ynthm-common</groupId>
                 <artifactId>common-dependencies</artifactId>
                 <version>${project.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-<!--            <dependency>-->
-<!--                <groupId>com.ynthm.common</groupId>-->
-<!--                <artifactId>common-spring-dependencies</artifactId>-->
-<!--                <version>${project.version}</version>-->
-<!--                <type>pom</type>-->
-<!--                <scope>import</scope>-->
-<!--            </dependency>-->
+            <!--            <dependency>-->
+            <!--                <groupId>com.ynthm.common</groupId>-->
+            <!--                <artifactId>common-spring-dependencies</artifactId>-->
+            <!--                <version>${project.version}</version>-->
+            <!--                <type>pom</type>-->
+            <!--                <scope>import</scope>-->
+            <!--            </dependency>-->
         </dependencies>
     </dependencyManagement>
 

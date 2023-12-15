@@ -1,12 +1,14 @@
 package com.ynthm.autoconfigure.mybatis.plus.util;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.metadata.OrderItem;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.ynthm.common.domain.page.OrderItem;
 import com.ynthm.common.domain.page.PageReq;
 import com.ynthm.common.domain.page.PageResp;
+import com.ynthm.common.domain.page.PageValidReq;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -27,14 +29,25 @@ public class PageUtil {
    * @return IPage
    */
   public static <T> IPage<T> pageable(PageReq<?> req) {
-    Page<T> page = new Page<>(req.getPage(), req.getSize());
+    return getPage(req.getPage(), req.getSize(), req.getOrderItems(), req.isSearchCount());
+  }
+
+  public static <T> IPage<T> pageable(PageValidReq<?> req) {
+    return getPage(req.getPage(), req.getSize(), req.getOrderItems(), req.isSearchCount());
+  }
+
+  private static <T> IPage<T> getPage(
+      int pageIndex, int size, List<OrderItem> orderItems2, boolean searchCount) {
+    Page<T> page = new Page<>(pageIndex, size);
     page.setOrders(
-        Optional.ofNullable(req.getOrderItems())
+        Optional.ofNullable(orderItems2)
             .map(
                 orderItems ->
-                    orderItems.stream().map(i -> new OrderItem()).collect(Collectors.toList()))
+                    orderItems.stream()
+                        .map(i -> new com.baomidou.mybatisplus.core.metadata.OrderItem())
+                        .collect(Collectors.toList()))
             .orElse(new ArrayList<>()));
-    page.setSearchCount(req.isSearchCount());
+    page.setSearchCount(searchCount);
     return page;
   }
 
@@ -61,7 +74,6 @@ public class PageUtil {
    *
    * @param req 分页请求
    * @param func Mybatis 处理分页请求
-   * @return
    * @param <T> 结果类型
    * @param <P> 参数
    */

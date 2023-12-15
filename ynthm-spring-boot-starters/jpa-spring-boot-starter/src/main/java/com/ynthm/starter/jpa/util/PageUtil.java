@@ -1,13 +1,17 @@
 package com.ynthm.starter.jpa.util;
 
-import com.ynthm.common.domain.PageReq;
-import com.ynthm.common.domain.PageResp;
+import com.ynthm.common.domain.page.OrderItem;
+import com.ynthm.common.domain.page.PageReq;
+import com.ynthm.common.domain.page.PageResp;
+import com.ynthm.common.domain.page.PageValidReq;
+import com.ynthm.common.util.CollectionUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -20,13 +24,22 @@ public class PageUtil {
   private PageUtil() {}
 
   public static <P extends Serializable> Pageable pageable(PageReq<P> req) {
+    return getPageable(req.getPage(), req.getSize(), req.getOrderItems());
+  }
+
+  public static <P extends Serializable> Pageable pageable(PageValidReq<P> req) {
+    return getPageable(req.getPage(), req.getSize(), req.getOrderItems());
+  }
+
+  private static <P extends Serializable> Pageable getPageable(
+      int page, int size, List<OrderItem> orderItems) {
     return PageRequest.of(
-        req.getPage(),
-        req.getSize(),
-        Optional.ofNullable(req.getOrderItems())
+        page,
+        size,
+        Optional.ofNullable(orderItems)
             .map(
-                orderItems ->
-                    orderItems.stream()
+                items ->
+                    items.stream()
                         .map(
                             orderItem -> {
                               if (orderItem.isAsc()) {
