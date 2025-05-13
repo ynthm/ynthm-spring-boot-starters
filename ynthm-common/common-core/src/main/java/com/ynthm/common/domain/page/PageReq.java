@@ -3,6 +3,7 @@ package com.ynthm.common.domain.page;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -12,11 +13,11 @@ import lombok.experimental.Accessors;
  */
 @Accessors(chain = true)
 @Data
-public class PageReq<P extends Serializable> implements Serializable {
+public class PageReq<P> implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  /** 查询參數 */
+  /** 查询參數 可以为 Void */
   protected P param;
 
   /** 每页显示条数，默认 10 */
@@ -51,5 +52,9 @@ public class PageReq<P extends Serializable> implements Serializable {
     }
 
     return param;
+  }
+
+  public Optional<P> optParam() {
+    return Optional.ofNullable(param);
   }
 }

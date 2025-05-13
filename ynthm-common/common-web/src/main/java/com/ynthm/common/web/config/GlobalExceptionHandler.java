@@ -4,14 +4,14 @@ import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.Lists;
 import com.ynthm.common.domain.BindError;
 import com.ynthm.common.domain.ErrorItem;
 import com.ynthm.common.domain.Result;
 import com.ynthm.common.enums.BaseResultCode;
 import com.ynthm.common.exception.BaseException;
+import com.ynthm.common.exception.CarryDataException;
 import com.ynthm.common.util.ExceptionUtil;
-import com.ynthm.common.web.exception.CarryDataException;
-
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
@@ -69,9 +69,9 @@ public class GlobalExceptionHandler extends BasicErrorController {
   public static final String MESSAGE = "message";
   private ObjectMapper objectMapper;
 
-  @Resource
-  public void setObjectMapper(ObjectMapper objectMapper) {
-    this.objectMapper = objectMapper;
+  /** 引用父类构造方法，将设置的ErrorProperties传入父类 */
+  public GlobalExceptionHandler() {
+    super(new DefaultErrorAttributes(), initProperties());
   }
 
   /** 设置ErrorProperties参数值 */
@@ -81,9 +81,42 @@ public class GlobalExceptionHandler extends BasicErrorController {
     return properties;
   }
 
-  /** 引用父类构造方法，将设置的ErrorProperties传入父类 */
-  public GlobalExceptionHandler() {
-    super(new DefaultErrorAttributes(), initProperties());
+  @Nullable
+  private static HttpStatus getHttpStatus(HttpServletRequest request) {
+    HttpStatus httpStatus;
+    httpStatus = HttpStatus.SERVICE_UNAVAILABLE;
+    if (request instanceof ServletWebRequest) {
+      ServletWebRequest servletWebRequest = (ServletWebRequest) request;
+      HttpServletResponse response = servletWebRequest.getResponse();
+      if (response != null && response.isCommitted()) {
+        log.warn("Async request timed out");
+        return null;
+      }
+    }
+    return httpStatus;
+  }
+
+  @NotNull
+  private static HttpStatus getHttpStatus(
+      HttpMediaTypeNotSupportedException ex, HttpServletRequest request, HttpHeaders headers) {
+    HttpStatus httpStatus;
+    httpStatus = HttpStatus.UNSUPPORTED_MEDIA_TYPE;
+    List<MediaType> mediaTypes = ex.getSupportedMediaTypes();
+    if (!CollectionUtils.isEmpty(mediaTypes)) {
+      headers.setAccept(mediaTypes);
+      if (request instanceof ServletWebRequest) {
+        ServletWebRequest servletWebRequest = (ServletWebRequest) request;
+        if (HttpMethod.PATCH.equals(servletWebRequest.getHttpMethod())) {
+          headers.setAcceptPatch(mediaTypes);
+        }
+      }
+    }
+    return httpStatus;
+  }
+
+  @Resource
+  public void setObjectMapper(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
   }
 
   /**
@@ -105,7 +138,7 @@ public class GlobalExceptionHandler extends BasicErrorController {
   }
 
   @ExceptionHandler(value = CarryDataException.class)
-  public Result<String> handleBaseException(CarryDataException e) {
+  public Result<Void> handleBaseException(CarryDataException e) {
     log.error(e.getLocalizedMessage(), e);
 
     return e.getResult();
@@ -148,16 +181,22 @@ public class GlobalExceptionHandler extends BasicErrorController {
     Map<String, Object> body =
         getErrorAttributes(request, getErrorAttributeOptions(request, MediaType.ALL));
     log.error("controller before exception: {}; ", body);
-    Object message = body.get(MESSAGE);
+    Object message = body.remove(MESSAGE);
+    body.remove("status");
     result.put(Result.FIELD_CODE, status.value());
     result.put(Result.FIELD_MESSAGE, message.toString());
-    result.put(Result.FIELD_DATA, body);
+    result.put(
+        Result.FIELD_ERRORS,
+        body.entrySet().stream()
+            .map(i -> new ErrorItem(i.getKey(), i.getValue().toString()))
+            .collect(Collectors.toList()));
 
     return ResponseEntity.ok().body(result);
   }
 
   @Override
   public ModelAndView errorHtml(HttpServletRequest request, HttpServletResponse response) {
+    // 404 等无法异常捕捉的异常页面转内部异常
     HttpStatus status = this.getStatus(request);
     Map<String, Object> body =
         this.getErrorAttributes(
@@ -172,7 +211,11 @@ public class GlobalExceptionHandler extends BasicErrorController {
       throw new BaseException(e);
     }
 
-    throw new CarryDataException(Result.of(jsonBody, status.value(), message.toString()));
+    throw new CarryDataException(
+        Result.error(
+            status.value(),
+            message.toString(),
+            Lists.newArrayList(new ErrorItem(String.valueOf(status.value()), jsonBody))));
   }
 
   @SneakyThrows
@@ -182,7 +225,8 @@ public class GlobalExceptionHandler extends BasicErrorController {
     HttpStatus status = HttpStatus.NOT_ACCEPTABLE;
 
     return ResponseEntity.ok(
-        objectMapper.writeValueAsString(Result.of(null, status.value(), status.getReasonPhrase())));
+        objectMapper.writeValueAsString(
+            Result.error(status.value(), status.getReasonPhrase(), null)));
   }
 
   /**
@@ -261,42 +305,9 @@ public class GlobalExceptionHandler extends BasicErrorController {
       request.setAttribute(WebUtils.ERROR_EXCEPTION_ATTRIBUTE, ex);
     }
 
-    result = Result.of(null, httpStatus.value(), message);
+    result = Result.error(httpStatus.value(), message);
 
     return ResponseEntity.ok().headers(headers).body(result);
-  }
-
-  @Nullable
-  private static HttpStatus getHttpStatus(HttpServletRequest request) {
-    HttpStatus httpStatus;
-    httpStatus = HttpStatus.SERVICE_UNAVAILABLE;
-    if (request instanceof ServletWebRequest) {
-      ServletWebRequest servletWebRequest = (ServletWebRequest) request;
-      HttpServletResponse response = servletWebRequest.getResponse();
-      if (response != null && response.isCommitted()) {
-        log.warn("Async request timed out");
-        return null;
-      }
-    }
-    return httpStatus;
-  }
-
-  @NotNull
-  private static HttpStatus getHttpStatus(
-      HttpMediaTypeNotSupportedException ex, HttpServletRequest request, HttpHeaders headers) {
-    HttpStatus httpStatus;
-    httpStatus = HttpStatus.UNSUPPORTED_MEDIA_TYPE;
-    List<MediaType> mediaTypes = ex.getSupportedMediaTypes();
-    if (!CollectionUtils.isEmpty(mediaTypes)) {
-      headers.setAccept(mediaTypes);
-      if (request instanceof ServletWebRequest) {
-        ServletWebRequest servletWebRequest = (ServletWebRequest) request;
-        if (HttpMethod.PATCH.equals(servletWebRequest.getHttpMethod())) {
-          headers.setAcceptPatch(mediaTypes);
-        }
-      }
-    }
-    return httpStatus;
   }
 
   /**

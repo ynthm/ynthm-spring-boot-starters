@@ -1,11 +1,10 @@
 package com.ynthm.common.domain;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
 
 /**
  * 详细错误信息
@@ -17,6 +16,9 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ErrorItem implements Serializable {
+  /** code or key */
   protected String code;
+
+  /** message or value */
   protected String msg;
 }

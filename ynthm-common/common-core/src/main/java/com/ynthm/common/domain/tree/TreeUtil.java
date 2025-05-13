@@ -14,15 +14,18 @@ public class TreeUtil {
   private TreeUtil() {}
 
   /**
-   * 内存中构建树 不包含顶层节点
+   * 构件树形结构的森林
    *
-   * @param nodes
-   * @param root 根节点值
-   * @return
-   * @param <T>
-   * @param <E>
+   * <p>内存中构建树 不包含顶层节点
+   *
+   * @param nodes 所有节点
+   * @param root 顶层父ID
+   * @return 结果森林
+   * @param <T> 节点类型
+   * @param <E> ID类型
+   * @param <S> 排序类型
    */
-  public static <T extends Node<E>, E extends Comparable<E>> List<T> buildTree(
+  public static <T extends Node<E, S>, S extends Comparable<S>, E> List<T> buildTree(
       List<T> nodes, E root) {
     Map<E, List<T>> id2Nodes =
         nodes.stream()
@@ -36,14 +39,15 @@ public class TreeUtil {
                             Collectors.toList(),
                             e ->
                                 e.stream()
-                                    .sorted(Comparator.comparing(Node::getSortNo))
+                                    .sorted(Comparator.comparing(Node::sortable))
                                     .collect(Collectors.toList())))));
     // 循环设置对应的子节点
-    nodes.forEach(node -> node.addChildren(id2Nodes.getOrDefault(node.getId(), new ArrayList<>())));
+    nodes.forEach(
+        node -> node.getChildren().addAll(id2Nodes.getOrDefault(node.getId(), new ArrayList<>())));
     // 返回第二层节点集合
     return nodes.stream()
         .filter(node -> node.getPid().equals(root))
-        .sorted(Comparator.comparing(Node::getSortNo))
+        .sorted(Comparator.comparing(Node::sortable))
         .collect(Collectors.toList());
   }
 }

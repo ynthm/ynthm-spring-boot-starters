@@ -3,6 +3,7 @@ package com.ynthm.common.domain.page;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -51,5 +52,9 @@ public class PageValidReq<P extends Serializable> implements Serializable {
     }
 
     return param;
+  }
+
+  public Optional<P> optParam() {
+    return Optional.ofNullable(param);
   }
 }

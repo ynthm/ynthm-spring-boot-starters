@@ -28,11 +28,12 @@ public enum BaseResultCode implements ResultCode, ResultExceptionAssert {
 
   /** 用户输入 */
   VALID_ERROR(2000, "参数校验错误"),
-  DB_NOT_EXIST(2001, "数据库不存在"),
-  DB_EXIST(2002, "数据库已存在"),
+  DB_NOT_EXIST(2001, "数据库不存在记录"),
+  DB_EXIST(2002, "数据库已存在记录"),
 
   EXCEL_EXPORT_FAILED(10000, "Excel 导出异常"),
   NONE_DATA_EXPORT(10001, "无数据导出"),
+  EXCEL_CONVERT_ERROR(10002, "Excel 文件解析错误"),
 
   INTERNAL_ERROR(90000, "微服务内部错误"),
   /** 调用第三方服务发生错误 */

@@ -3,8 +3,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.ynthm.common</groupId>
-        <artifactId>common-dependencies</artifactId>
+        <groupId>com.ynthm</groupId>
+        <artifactId>ynthm-spring-boot-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
@@ -28,6 +28,7 @@
         <module>common-web-core</module>
         <module>common-web</module>
         <module>common-util</module>
+        <module>common-security</module>
     </modules>
 
     <dependencies>
@@ -71,16 +72,16 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>com.ynthm.common</groupId>
-                <artifactId>common-core</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>com.ynthm.common</groupId>
-                <artifactId>common-web-core</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
-            </dependency>
+            <!--            <dependency>-->
+            <!--                <groupId>com.ynthm.common</groupId>-->
+            <!--                <artifactId>common-core</artifactId>-->
+            <!--                <version>1.0.0-SNAPSHOT</version>-->
+            <!--            </dependency>-->
+            <!--            <dependency>-->
+            <!--                <groupId>com.ynthm.common</groupId>-->
+            <!--                <artifactId>common-web-core</artifactId>-->
+            <!--                <version>1.0.0-SNAPSHOT</version>-->
+            <!--            </dependency>-->
             <dependency>
                 <groupId>com.ynthm-common</groupId>
                 <artifactId>common-dependencies</artifactId>

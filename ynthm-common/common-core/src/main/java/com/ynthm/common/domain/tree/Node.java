@@ -1,37 +1,19 @@
 package com.ynthm.common.domain.tree;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import lombok.Data;
 
 /**
  * @author Ethan Wang
  */
-@Data
-public class Node<E extends Comparable<E>> implements Serializable {
+public interface Node<E, S extends Comparable<S>> {
 
-  protected E id;
-  protected E pid;
-  protected String name;
+  E getId();
 
-  protected Integer sortNo;
+  E getPid();
 
-  /** 节点类型 */
-  protected Integer type;
+  String getName();
 
-  protected List<Node> children = new ArrayList<>();
+  S sortable();
 
-  public Node() {}
-
-  public Node(E id, E pid, String name) {
-    this.id = id;
-    this.pid = pid;
-    this.name = name;
-  }
-
-  public void addChildren(Collection<? extends Node> c) {
-    children.addAll(c);
-  }
+  List<Node<E, S>> getChildren();
 }

@@ -1,16 +1,11 @@
 package com.ynthm.common.lang;
 
+import java.io.Serializable;
+import java.util.function.Function;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import java.io.Serializable;
-import java.util.function.Function;
-
-/**
- * @author Ynthm Wang
- * @version 1.0
- */
 @Getter
 @AllArgsConstructor
 @EqualsAndHashCode
@@ -32,10 +27,10 @@ public class Tuple2<T1 extends Serializable, T2 extends Serializable> implements
   }
 
   public <R extends Serializable> Tuple2<R, T2> mapT1(Function<T1, R> mapper) {
-    return new Tuple2(mapper.apply(this.t1), this.t2);
+    return new Tuple2<>(mapper.apply(this.t1), this.t2);
   }
 
   public <R extends Serializable> Tuple2<T1, R> mapT2(Function<T2, R> mapper) {
-    return new Tuple2(this.t1, mapper.apply(this.t2));
+    return new Tuple2<>(this.t1, mapper.apply(this.t2));
   }
 }

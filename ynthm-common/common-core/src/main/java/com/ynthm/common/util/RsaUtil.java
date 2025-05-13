@@ -5,20 +5,17 @@ import com.ynthm.common.constant.Constant;
 import com.ynthm.common.enums.security.CipherAlgorithm;
 import com.ynthm.common.enums.security.SignatureAlgorithm;
 import com.ynthm.common.exception.UtilException;
-import lombok.extern.slf4j.Slf4j;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.*;
 import java.security.spec.AlgorithmParameterSpec;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 
 /**
  * @author ETHAN WANG
  */
-@Slf4j
 public class RsaUtil {
 
   private RsaUtil() {}

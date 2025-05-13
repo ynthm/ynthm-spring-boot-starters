@@ -1,9 +1,0 @@
-server:
-  port: 9000
-spring:
-  security:
-    oauth2:
-      authorizationserver:
-        issuer: http://localhost:9000
-  application:
-    name: auth

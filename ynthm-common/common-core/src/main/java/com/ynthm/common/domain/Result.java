@@ -1,22 +1,24 @@
 package com.ynthm.common.domain;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.google.common.collect.Lists;
 import com.ynthm.common.enums.BaseResultCode;
 import com.ynthm.common.enums.ResultCode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import lombok.Data;
-import lombok.NonNull;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.MessageFormatter;
 
 /**
  * 响应信息主体
  *
  * @author Ethan Wang
  */
+@Slf4j
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
 @Accessors(chain = true)
@@ -25,6 +27,7 @@ public class Result<T> {
   public static final String FIELD_CODE = "code";
   public static final String FIELD_MESSAGE = "msg";
   public static final String FIELD_DATA = "data";
+  public static final String FIELD_ERRORS = "errors";
 
   private int code;
 
@@ -39,34 +42,35 @@ public class Result<T> {
 
   private List<ErrorItem> errors;
 
-  public Result<T> addError(String code, String msg) {
-    if (Objects.isNull(this.errors)) {
-      this.errors = new ArrayList<>();
-    }
-
-    this.errors.add(new ErrorItem(code, msg));
-
-    return this;
-  }
-
   public static <T> Result<T> ok(T data) {
-    return of(BaseResultCode.OK, data);
+    Result<T> apiResult = new Result<>();
+    apiResult.setCode(BaseResultCode.OK.getCode());
+    apiResult.setMsg(BaseResultCode.OK.getMessage());
+    apiResult.setData(data);
+    return apiResult;
   }
 
   public static <T> Result<T> ok() {
-    return of(BaseResultCode.OK, null);
+    return ok(null);
   }
 
   public static <T> Result<T> warn(String message) {
-    return ofMessage(BaseResultCode.WARN, message);
+    return error(BaseResultCode.WARN.getCode(), message);
   }
 
   public static <T> Result<T> error(ResultCode errorCode) {
-    return of(null, errorCode.getCode(), errorCode.getMessage());
+    return error(errorCode.getCode(), errorCode.getMessage(), null);
   }
 
-  public static <T> Result<T> error(ResultCode errorCode, String message) {
-    return ofMessage(errorCode, message);
+  /** 错误不需要抛出异常，直接返回并打印日志，记录后台上下文参数 */
+  public static <T> Result<T> errorReturnAndLog(
+      ResultCode resultCode, String format, Object... args) {
+
+    log.error(
+        "[{}] {}",
+        resultCode.getMessage(),
+        MessageFormatter.arrayFormat(format, args).getMessage());
+    return error(resultCode);
   }
 
   /**
@@ -84,20 +88,12 @@ public class Result<T> {
     return Result.<T>error(resultCode).addError(errorCode, errorMessage);
   }
 
-  public static <T> Result<T> of(ResultCode resultCode, T data) {
-    return of(data, resultCode.getCode(), resultCode.getMessage());
+  public static <T> Result<T> error(ResultCode code, String message) {
+    return error(code.getCode(), message, null);
   }
 
-  public static <T> Result<T> ofMessage(ResultCode resultCode, String message) {
-    return of(null, resultCode.getCode(), message);
-  }
-
-  public static <T> Result<T> of(T data, int code, String msg) {
-    Result<T> apiResult = new Result<>();
-    apiResult.setCode(code);
-    apiResult.setMsg(msg);
-    apiResult.setData(data);
-    return apiResult;
+  public static <T> Result<T> error(int code, String message) {
+    return error(code, message, null);
   }
 
   public static <T> Result<T> error(int code, String msg, List<ErrorItem> errors) {
@@ -108,51 +104,52 @@ public class Result<T> {
     return apiResult;
   }
 
+  /**
+   * 一般用在 Controller 层手动校验
+   *
+   * @param vo 前端传递 VO
+   * @param errorFunction 校验 VO 返回 Optional<ResultCode>
+   * @param passed 通过校验后执行逻辑
+   * @param <V> VO 类型
+   * @param <T> 返回类型
+   */
+  public static <V, T> Result<T> validateThenApply(
+      V vo, Function<V, Optional<ResultCode>> errorFunction, Function<V, Result<T>> passed) {
+    return errorFunction.apply(vo).<Result<T>>map(Result::error).orElseGet(() -> passed.apply(vo));
+  }
+
+  public Result<T> addError(String code, String msg) {
+    if (Objects.isNull(this.errors)) {
+      this.errors = new ArrayList<>();
+    }
+
+    this.errors.add(new ErrorItem(code, msg));
+
+    return this;
+  }
+
   public boolean success() {
     return this.code == BaseResultCode.OK.getCode();
   }
 
-  /**
-   * 微服务内部错误转换
-   *
-   * @param result
-   * @return
-   * @param <T>
-   */
-  public static <T> Result<T> internalResult(Result<T> result) {
-    if (result.success()) {
-      return Result.ok(result.getData());
+  public <S> Result<S> transferMassage() {
+    return Result.error(getCode(), getMsg(), getErrors());
+  }
+
+  public <S> Result<S> thenApply(Function<T, Result<S>> function) {
+    if (success()) {
+      return function.apply(getData());
     } else {
-      List<ErrorItem> errorItems =
-          Lists.newArrayList(new ErrorItem(String.valueOf(result.getCode()), result.getMsg()));
-      if (Objects.nonNull(result.getErrors())) {
-        errorItems.addAll(result.getErrors());
-      }
-      return Result.error(
-          BaseResultCode.INTERNAL_ERROR.getCode(),
-          BaseResultCode.INTERNAL_ERROR.getMessage(),
-          errorItems);
+      return transferMassage();
     }
   }
 
-  public static <T, S> Result<T> thenApply(Result<S> result, Function<S, Result<T>> function) {
-    if (result.success()) {
-      return function.apply(result.getData());
-    } else {
-      return transferMassage(result);
-    }
-  }
-
-  public static <S> Result<Void> thenRun(Result<S> result, Runnable runnable) {
-    if (result.success()) {
+  public Result<Void> thenRun(Runnable runnable) {
+    if (success()) {
       runnable.run();
       return Result.ok();
     } else {
-      return transferMassage(result);
+      return transferMassage();
     }
-  }
-
-  private static <T, S> Result<T> transferMassage(Result<S> result) {
-    return Result.error(result.getCode(), result.getMsg(), result.getErrors());
   }
 }

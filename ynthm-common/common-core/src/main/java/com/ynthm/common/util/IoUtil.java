@@ -40,6 +40,22 @@ public class IoUtil {
     }
   }
 
+  public static InputStream pipe(ByteArrayOutputStream outputStream) {
+    // connect the pipe
+    PipedInputStream in = new PipedInputStream();
+    new Thread(
+            () -> {
+              try (PipedOutputStream out = new PipedOutputStream(in)) {
+                outputStream.writeTo(out);
+              } catch (IOException e) {
+                throw new UtilException(e);
+              }
+            })
+        .start();
+
+    return in;
+  }
+
   public static String toString(InputStream inputStream) throws IOException {
     return toString(inputStream, StandardCharsets.UTF_8);
   }

@@ -10,7 +10,7 @@ public interface AuthUser extends Serializable {
   /**
    * 当前用户信息 用户、当前语言
    *
-   * @return
+   * @return IUser
    */
   Object getPrincipal();
 

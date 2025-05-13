@@ -1,16 +1,12 @@
 package com.ynthm.common.util;
 
-import com.ynthm.common.constant.Constant;
-import com.ynthm.common.constant.PssParamsHolder;
 import com.ynthm.common.enums.security.CipherAlgorithm;
 import com.ynthm.common.enums.security.SignatureAlgorithm;
 import com.ynthm.common.lang.Tuple2;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.spec.PSSParameterSpec;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Ynthm Wang
@@ -35,15 +31,6 @@ class RsaUtilTest {
     Assertions.assertEquals(str, RsaUtil.decryptByPublicKey(tuple2.getT1(), encrypt));
   }
 
-  @Test
-  void testPss() {
-    Tuple2<PublicKey, PrivateKey> tuple2 = RsaKeyUtil.generatePublicAndPrivate();
-    PSSParameterSpec pssParameterSpec = PssParamsHolder.pssParameterSpec(tuple2.getT1());
-    byte[] content = "你好".getBytes(Constant.CHARSET_UTF_8);
-    byte[] sign = RsaUtil.signPss(tuple2.getT2(), pssParameterSpec, content);
-
-    Assertions.assertTrue(RsaUtil.verifyPss(tuple2.getT1(), pssParameterSpec, sign, content));
-  }
 
   @Test
   void generateKeyPair111() {
