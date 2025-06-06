@@ -30,6 +30,7 @@ public enum BaseResultCode implements ResultCode, ResultExceptionAssert {
   VALID_ERROR(2000, "参数校验错误"),
   DB_NOT_EXIST(2001, "数据库不存在记录"),
   DB_EXIST(2002, "数据库已存在记录"),
+  NOT_EXIST_CONTEXT(2003, "上下文无法获取指定值"),
 
   EXCEL_EXPORT_FAILED(10000, "Excel 导出异常"),
   NONE_DATA_EXPORT(10001, "无数据导出"),

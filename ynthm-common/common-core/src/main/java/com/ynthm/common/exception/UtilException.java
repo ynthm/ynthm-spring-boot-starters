@@ -7,6 +7,10 @@ import com.ynthm.common.enums.ResultCode;
  * @version 1.0
  */
 public class UtilException extends BaseException {
+  public UtilException(String message) {
+    super(message);
+  }
+
   public UtilException(ResultCode resultCode) {
     super(resultCode);
   }
